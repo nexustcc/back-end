@@ -1,0 +1,38 @@
+{
+  "name": "rest-api-nexustcc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nexustcc/back-end.git"
+  },
+  "keywords": [
+    "rest",
+    "api",
+    "nexustcc"
+  ],
+  "author": "Nexus TCC Developers",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nexustcc/back-end/issues"
+  },
+  "homepage": "https://github.com/nexustcc/back-end#readme",
+  "dependencies": {
+    "body-parser": "^1.19.2",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "md5": "^2.3.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.4",
+    "mysql2": "^2.3.3",
+    "nodemailer": "^6.7.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}

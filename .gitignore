@@ -1,0 +1,4 @@
+node_modules/
+config/smtp.js
+.vscode
+/node_modules

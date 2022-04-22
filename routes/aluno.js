@@ -167,9 +167,8 @@ router.put("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
 });
 
 // PRECISA DE DOIS GETS, UM DE ALUNO ESPECIFICO E OUTRO DE ALUNOS DE UMA TURMA
-// AINDA ESTÁ SENDO REALIZADO (22/04/2022 às 18:11)
 
-router.get("/listarProfessor/:idProfessor", (req, res) => {
+router.get("/listarAluno/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -178,8 +177,8 @@ router.get("/listarProfessor/:idProfessor", (req, res) => {
         }
 
         const sql =
-            "SELECT * FROM tblProfessor INNER JOIN tblUsuario ON tblProfessor.idUsuario = tblUsuario.idUsuario WHERE idProfessor = ?";
-        const values = [req.params.idProfessor];
+            "SELECT * FROM tblAluno INNER JOIN tblUsuario ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE idAluno = ?";
+        const values = [req.params.idAluno];
         connection.query(sql, values, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
@@ -189,18 +188,112 @@ router.get("/listarProfessor/:idProfessor", (req, res) => {
             }
 
             res.status(200).send({
-                professor: result.map((professor) => {
+                aluno: result.map((aluno) => {
                     return {
-                        foto: professor.foto,
+                        foto: aluno.foto,
                         usuario: {
-                            nome: professor.nome,
-                            email: professor.email,
-                            senha: professor.senha,
+                            nome: aluno.nome,
+                            email: aluno.email,
+                            senha: aluno.senha,
                         },
                     };
                 }),
             });
         });
+    });
+});
+
+router.get("/listarAlunos/:idTurma", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql =
+            "SELECT * FROM tblUsuario INNER JOIN tblAluno ON tblUsuario.idUsuario = tblAluno.idUsuario WHERE idTurma = ?";
+        connection.query(sql, req.params.idTurma, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(200).send({
+                alunos: result.map((aluno) => {
+                    return {
+                        foto: aluno.foto,
+                        usuario: {
+                            nome: aluno.nome,
+                            email: aluno.email,
+                            senha: aluno.senha,
+                        },
+                    };
+                }),
+            });
+        });
+    });
+});
+
+router.delete("/deletarAluno/:idAluno", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let idUsuario;
+
+        const sqlGetAlunno = "SELECT * FROM tblAluno WHERE idAluno = ?";
+        connection.query(
+            sqlGetAlunno,
+            req.params.idAluno,
+            (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+                let result_obj = result;
+                let result_json = result_obj[Object.keys(result_obj)[0]];
+                idUsuario = result_json["idUsuario"];
+
+                console.log(idUsuario);
+
+                const sqlDeleteAluno = "DELETE FROM tblAluno WHERE idAluno = ?";
+                connection.query(
+                    sqlDeleteAluno,
+                    req.params.idAluno,
+                    (error, result, field) => {
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
+                        }
+
+                        const sqlDeleteUsuario =
+                            "DELETE FROM tblUsuario WHERE idUsuario = ?";
+                        connection.query(sqlDeleteUsuario, idUsuario, (error) => {
+                            if (error) {
+                                return res.status(500).send({
+                                    error: error,
+                                    response: null,
+                                });
+                            }
+
+                            res.status(202).send({
+                                message: "aluno deletado",
+                            });
+                        });
+                    }
+                );
+            }
+        );
     });
 });
 

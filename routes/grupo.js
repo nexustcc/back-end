@@ -70,8 +70,6 @@ router.put("/editarGrupo/:idGrupo", (req, res) => {
     });
 });
 
-// PRECISO FAZER DOIS GETS, UM DE GRUPO ESPECÍFICO E UM DE TODOS GRUPOS DE UMA TURMA
-
 router.get("/listarGrupo/:idGrupo", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -80,7 +78,7 @@ router.get("/listarGrupo/:idGrupo", (req, res) => {
             });
         }
 
-        const sql = "SELECT * FROM tblGrupo WHERE idGrupo = ?"
+        const sql = "SELECT * FROM tblGrupo WHERE idGrupo = ?";
         connection.query(sql, req.params.idGrupo, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
@@ -97,7 +95,7 @@ router.get("/listarGrupo/:idGrupo", (req, res) => {
                         numeracao: grupo.numeracao,
                         nomeGrupo: grupo.nomeGrupo,
                         dataApresentacao: grupo.dataApresentacao,
-                        horaApresentacao: grupo.horaApresentacao
+                        horaApresentacao: grupo.horaApresentacao,
                     };
                 }),
             });
@@ -130,7 +128,7 @@ router.get("/listarGrupos/:idTurma", (req, res) => {
                         numeracao: grupo.numeracao,
                         nomeGrupo: grupo.nomeGrupo,
                         dataApresentacao: grupo.dataApresentacao,
-                        horaApresentacao: grupo.horaApresentacao
+                        horaApresentacao: grupo.horaApresentacao,
                     };
                 }),
             });

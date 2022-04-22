@@ -1,5 +1,4 @@
 // A ROTA DA LINHA 163 ESTÁ COM ERRO
-// A ROTA "POST" DA LINHA 39,, ESTÁ DANDO ERRO NO COMPUTADOR DO ARTUR
 
 const express = require("express");
 const router = express.Router();

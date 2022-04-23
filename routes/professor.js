@@ -265,15 +265,14 @@ router.put(
                 });
             }
 
-            let idUsuario;
 
-            const sqlGetIdUsuario =
-                "SELECT idUsuario FROM tblProfessor WHERE idProfessor = ?";
-            const valuesGetIdUsuario = [req.params.idProfessor];
+            let idGrupos = []
+            let idGruposDeletar = []
 
+            const sqlIdProfessor = 'SELECT idGrupo FROM tblProfessorGrupo WHERE idProfessor = ?'
             connection.query(
-                sqlGetIdUsuario,
-                valuesGetIdUsuario,
+                sqlIdProfessor,
+                req.params.idProfessor,
                 (error, result, field) => {
                     if (error) {
                         return res.status(500).send({
@@ -281,43 +280,36 @@ router.put(
                             response: null,
                         });
                     }
-                    let result_obj = result;
-                    let result_json = result_obj[Object.keys(result_obj)[0]];
-                    idUsuario = result_json["idUsuario"];
 
-                    const sqlEditUsuario =
-                        "UPDATE tblUsuario SET nome = ?, email = ?, senha = ? WHERE idUsuario = ?";
-                    const valuesUsuario = [
-                        req.body.nome,
-                        req.body.email,
-                        req.body.senha,
-                        idUsuario,
-                    ];
-                    connection.query(
-                        sqlEditUsuario,
-                        valuesUsuario,
-                        (error, result, field) => {
-                            if (error) {
-                                return res.status(500).send({
-                                    error: error,
-                                    response: null,
-                                });
-                            }
+                    for (let g = 0; g < result.length; g++) {
+                        idGrupos.push(result[g].idGrupo)
+                    }
 
-                            let foto;
+                    console.log('GRUPOS NO BANCO: ' + idGrupos)
 
-                            if (req.file == undefined) {
-                                foto = "uploads/fotopadrao.svg";
-                            } else {
-                                foto = req.file.path;
-                            }
+                    let idGruposProfessor = req.body.grupos
 
-                            const sqlEditProfessor =
-                                "UPDATE tblProfessor SET foto = ? WHERE idProfessor = ?";
-                            const valuesEditProfessor = [foto, req.params.idProfessor];
-                            mysql.query(
-                                sqlEditProfessor,
-                                valuesEditProfessor,
+                    console.log('GRUPOS DA REQUISIÇÃO: ' + idGruposProfessor)
+
+                    for (let n = 0; n <= idGruposProfessor.length; n++) {
+
+                        if(idGruposProfessor.indexOf(idGrupos[n]) >= 0){
+                            console.log('MANTER GRUPO ' + (idGrupos[n] + ', mas tirar do ARRAY'))
+                            idGruposProfessor.splice(idGruposProfessor.indexOf(idGrupos[n]), 1)
+                        } else if (idGruposProfessor.indexOf(idGrupos[n]) < 0){
+                            console.log('TIRAR GRUPO ' + (idGrupos[n]))
+                            idGruposDeletar.push(idGrupos[n])
+                        }
+
+                    }
+
+                    if (idGruposDeletar.length != 0) {
+                        console.log('DELETAR GRUPOS: ' + idGruposDeletar)
+                        const sqlDeletarGrupos = 'DELETE FROM tblProfessorGrupo WHERE idProfessor = ? AND idGrupo = ?'
+                        for (let g = 0; g < idGruposDeletar.length; g++) {
+                            connection.query(
+                                sqlDeletarGrupos,
+                                [req.params.idProfessor, idGruposDeletar[g]],
                                 (error, result, field) => {
                                     if (error) {
                                         return res.status(500).send({
@@ -325,16 +317,182 @@ router.put(
                                             response: null,
                                         });
                                     }
-
-                                    res.status(201).send({
-                                        message: "professor editado",
-                                    });
                                 }
                             );
                         }
-                    );
-                }
-            );
+                    }
+
+                    if (idGruposProfessor.length != 0) {
+                        console.log('CRIAR GRUPOS: ' + idGruposProfessor)
+                        const sqlAdicionarGrupos = 'INSERT INTO tblProfessorGrupo (idProfessor, idGrupo) VALUES (?, ?)'
+                        for (let g = 0; g < idGruposProfessor.length; g++) {
+                            connection.query(
+                                sqlAdicionarGrupos,
+                                [req.params.idProfessor, idGruposProfessor[g]],
+                                (error, result, field) => {
+                                    if (error) {
+                                        return res.status(500).send({
+                                            error: error,
+                                            response: null,
+                                        });
+                                    }
+                                }
+                            );
+                        }
+                    }
+                });
+
+
+
+                let idCursos = []
+                let idCursosDeletar = []
+
+                const sqlIdCursosProfessor = 'SELECT idCurso FROM tblProfessorCurso WHERE idProfessor = ?'
+                connection.query(
+                    sqlIdCursosProfessor,
+                    req.params.idProfessor,
+                    (error, result, field) => {
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
+                        }
+
+                        for (let c = 0; c < result.length; c++) {
+                            idCursos.push(result[c].idCurso)
+                        }
+
+                        console.log('CURSOS NO BANCO: ' + idCursos)
+
+                        let idCursosProfessor = req.body.cursos
+
+                        console.log('CURSOS DA REQUISIÇÃO: ' + idCursosProfessor)
+
+                        for (let n = 0; n <= idCursosProfessor.length; n++) {
+
+                            if(idCursosProfessor.indexOf(idCursos[n]) >= 0){
+                                console.log('MANTER CURSO ' + (idCursos[n] + ', mas tirar do ARRAY'))
+                                idCursosProfessor.splice(idCursosProfessor.indexOf(idCursos[n]), 1)
+                            } else if (idCursosProfessor.indexOf(idCursos[n]) < 0){
+                                console.log('TIRAR CURSO ' + (idCursos[n]))
+                                idCursosDeletar.push(idCursos[n])
+                            }
+
+                        }
+
+                        if (idCursosDeletar.length != 0) {
+                            console.log('DELETAR CURSOS: ' + idCursosDeletar)
+                            const sqlDeletarCursos = 'DELETE FROM tblProfessorCurso WHERE idProfessor = ? AND idCurso = ?'
+                            for (let c = 0; c < idCursosDeletar.length; c++) {
+                                connection.query(
+                                    sqlDeletarCursos,
+                                    [req.params.idProfessor, idCursosDeletar[c]],
+                                    (error, result, field) => {
+                                        if (error) {
+                                            return res.status(500).send({
+                                                error: error,
+                                                response: null,
+                                            });
+                                        }
+                                    }
+                                );
+                            }
+                        }
+
+                        if (idCursosProfessor.length != 0) {
+                            console.log('CRIAR CURSOS: ' + idCursosProfessor)
+                            const sqlAdicionarCursos = 'INSERT INTO tblProfessorCurso (idProfessor, idCurso) VALUES (?, ?)'
+                            for (let c = 0; c < idCursosProfessor.length; c++) {
+                                connection.query(
+                                    sqlAdicionarCursos,
+                                    [req.params.idProfessor, idCursosProfessor[c]],
+                                    (error, result, field) => {
+                                        if (error) {
+                                            return res.status(500).send({
+                                                error: error,
+                                                response: null,
+                                            });
+                                        }
+                                    }
+                                );
+                            }
+                        }
+                    });
+
+
+
+
+                let idUsuario;
+
+                const sqlGetIdUsuario =
+                    "SELECT idUsuario FROM tblProfessor WHERE idProfessor = ?";
+                const valuesGetIdUsuario = [req.params.idProfessor];
+
+                connection.query(
+                    sqlGetIdUsuario,
+                    valuesGetIdUsuario,
+                    (error, result, field) => {
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
+                        }
+                        let result_obj = result;
+                        let result_json = result_obj[Object.keys(result_obj)[0]];
+                        idUsuario = result_json["idUsuario"];
+
+                        const sqlEditUsuario =
+                            "UPDATE tblUsuario SET nome = ?, email = ?, senha = ? WHERE idUsuario = ?";
+                        const valuesUsuario = [
+                            req.body.nome,
+                            req.body.email,
+                            req.body.senha,
+                            idUsuario,
+                        ];
+                        connection.query(
+                            sqlEditUsuario,
+                            valuesUsuario,
+                            (error, result, field) => {
+                                if (error) {
+                                    return res.status(500).send({
+                                        error: error,
+                                        response: null,
+                                    });
+                                }
+
+                                let foto;
+
+                                if (req.file == undefined) {
+                                    foto = "uploads/fotopadrao.svg";
+                                } else {
+                                    foto = req.file.path;
+                                }
+
+                                const sqlEditProfessor =
+                                    "UPDATE tblProfessor SET foto = ? WHERE idProfessor = ?";
+                                const valuesEditProfessor = [foto, req.params.idProfessor];
+                                mysql.query(
+                                    sqlEditProfessor,
+                                    valuesEditProfessor,
+                                    (error, result, field) => {
+                                        if (error) {
+                                            return res.status(500).send({
+                                                error: error,
+                                                response: null,
+                                            });
+                                        }
+
+                                        res.status(201).send({
+                                            message: "professor editado",
+                                        });
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
         });
     }
 );

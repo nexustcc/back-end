@@ -13,6 +13,7 @@ const rotaProfessor = require("./routes/professor");
 const rotaAvaliador = require("./routes/avaliador");
 const rotaAluno = require("./routes/aluno");
 const rotaGrupo = require("./routes/grupo");
+const rotaLogin = require("./routes/login");
 
 app.use(morgan("dev"));
 app.use(cors());
@@ -48,6 +49,7 @@ app.use("/professor", rotaProfessor);
 app.use("/avaliador", rotaAvaliador);
 app.use("/aluno", rotaAluno);
 app.use("/grupo", rotaGrupo);
+app.use("/login", rotaLogin);
 
 app.use((req, res, next) => {
     const erro = new Error("Não encontrado!");

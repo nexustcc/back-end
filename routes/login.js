@@ -31,10 +31,77 @@ router.post('/', (req, res) => {
                     idUsuario = result_obj[Object.keys(result_obj)[0]]["idUsuario"];
                     nome = result_obj[Object.keys(result_obj)[0]]["nome"];
 
-                    res.status(201).send({
-                        idUsuario: idUsuario,
-                        nome: nome
-                    });                    
+                    const sqlInstituicao = 'SELECT idInstituicao FROM tblInstituicao WHERE idUsuario = ?'
+                    connection.query(
+                        sqlInstituicao,
+                        idUsuario,
+                        (error, result, field) => {
+                            if (error) {
+                                return res.status(500).send({
+                                    error: error,
+                                    response: null,
+                                });
+                            }
+
+                            if(result != ""){
+                                res.status(201).send({
+                                    idUsuario: idUsuario,
+                                    nome: nome,
+                                    tipo: 'instituição'
+                                });
+
+                            } else{
+                                const sqlProfessor = 'SELECT idProfessor FROM tblProfessor WHERE idUsuario = ?'
+                                connection.query(
+                                    sqlProfessor,
+                                    idUsuario,
+                                    (error, result, field) => {
+                                        if (error) {
+                                            return res.status(500).send({
+                                                error: error,
+                                                response: null,
+                                            });
+                                        }
+            
+                                        if(result != ""){
+                                            res.status(201).send({
+                                                idUsuario: idUsuario,
+                                                nome: nome,
+                                                tipo: 'professor'
+                                            });
+
+                                        } else{
+                                            const sqlAluno = 'SELECT idAluno FROM tblAluno WHERE idUsuario = ?'
+                                            connection.query(
+                                                sqlAluno,
+                                                idUsuario,
+                                                (error, result, field) => {
+                                                    if (error) {
+                                                        return res.status(500).send({
+                                                            error: error,
+                                                            response: null,
+                                                        });
+                                                    }
+                        
+                                                    if(result != ""){
+                                                        res.status(201).send({
+                                                            idUsuario: idUsuario,
+                                                            nome: nome,
+                                                            tipo: 'aluno'
+                                                        });
+
+                                                    } else{
+                                                        res.status(201).send({
+                                                            idUsuario: idUsuario,
+                                                            nome: nome,
+                                                            tipo: 'avaliador'
+                                                        });
+                                                    }
+                                                });
+                                        }
+                                    });
+                            }
+                        });               
                 } else{
                     res.status(201).send({
                         message: "email ou senha inválidos",

@@ -12,8 +12,7 @@ router.get("/listarCartao/:idInstituicao", (req, res) => {
 
         var idCartao;
 
-        const sqlInstituicao =
-            "SELECT idCartao FROM tblInstituicao WHERE idInstituicao = ?";
+        const sqlInstituicao = "SELECT idCartao FROM tblInstituicao WHERE idInstituicao = ?";
         const valuesInstituicao = [req.params.idInstituicao];
         connection.query(
             sqlInstituicao,
@@ -25,9 +24,8 @@ router.get("/listarCartao/:idInstituicao", (req, res) => {
                         response: null,
                     });
                 }
-                var result_obj = result;
-                var result_json = result_obj[Object.keys(result_obj)[0]];
-                idCartao = result_json["idCartao"];
+                
+                idCartao = result[Object.keys(result)[0]].idCartao;
 
                 const sqlCartao = "SELECT * FROM tblCartao WHERE idCartao = ?";
                 const valuesCartao = [idCartao];
@@ -40,7 +38,7 @@ router.get("/listarCartao/:idInstituicao", (req, res) => {
                     }
 
                     res.status(200).send({
-                        response: result,
+                        cartao: result,
                     });
                 });
             }

@@ -183,6 +183,8 @@ router.get("/listarCursos/:idProfessor", (req, res) => {
 
             let result_obj = result;
 
+            console.log(result_obj);
+
             for (let c = 0; c < result_obj.length; c++) {
                 let result_json = result_obj[c];
                 let idCurso = result_json[Object.keys(result_json)[0]];

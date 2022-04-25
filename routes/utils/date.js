@@ -1,11 +1,12 @@
-'use strict'
+"use strict";
 
 function converterData(data) {
     let dataSlipt = data.toISOString().split(["T"]);
     let dataArray = dataSlipt[0];
     let dataArraySplit = dataArray.split(["-"]);
-    let dataFinal = dataArraySplit[2] + "/" + dataArraySplit[1] + "/" + dataArraySplit[0];
+    let dataFinal =
+        dataArraySplit[2] + "/" + dataArraySplit[1] + "/" + dataArraySplit[0];
     return dataFinal;
-};
+}
 
 module.exports = converterData;

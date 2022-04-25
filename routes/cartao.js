@@ -12,7 +12,8 @@ router.get("/listarCartao/:idInstituicao", (req, res) => {
 
         var idCartao;
 
-        const sqlInstituicao = "SELECT idCartao FROM tblInstituicao WHERE idInstituicao = ?";
+        const sqlInstituicao =
+            "SELECT idCartao FROM tblInstituicao WHERE idInstituicao = ?";
         const valuesInstituicao = [req.params.idInstituicao];
         connection.query(
             sqlInstituicao,
@@ -24,7 +25,7 @@ router.get("/listarCartao/:idInstituicao", (req, res) => {
                         response: null,
                     });
                 }
-                
+
                 idCartao = result[Object.keys(result)[0]].idCartao;
 
                 const sqlCartao = "SELECT * FROM tblCartao WHERE idCartao = ?";

@@ -42,7 +42,8 @@ router.get("/listarTurmas/:idInstituicao", (req, res) => {
             });
         }
 
-        const sql = "SELECT idTurma, tblTurma.nome FROM tblturma INNER JOIN tblcurso ON tblTurma.idCurso = tblCurso.idCurso WHERE idInstituicao = ?";
+        const sql =
+            "SELECT idTurma, tblTurma.nome FROM tblturma INNER JOIN tblcurso ON tblTurma.idCurso = tblCurso.idCurso WHERE idInstituicao = ?";
         connection.query(sql, req.params.idInstituicao, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
@@ -58,7 +59,6 @@ router.get("/listarTurmas/:idInstituicao", (req, res) => {
                     };
                 }),
             });
-            
         });
     });
 });
@@ -158,7 +158,7 @@ router.put("/editarTurma/:idTurma", (req, res) => {
     });
 });
 
-router.put('/mudarAlunoTurma', (req, res) => {
+router.put("/mudarAlunoTurma", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -166,11 +166,8 @@ router.put('/mudarAlunoTurma', (req, res) => {
             });
         }
 
-        const sql = 'UPDATE tblAluno SET idTurma = ? WHERE idAluno = ?';
-        const values = [
-            req.body.idTurmaNova,
-            req.body.idAluno
-        ];
+        const sql = "UPDATE tblAluno SET idTurma = ? WHERE idAluno = ?";
+        const values = [req.body.idTurmaNova, req.body.idAluno];
         connection.query(sql, values, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
@@ -186,7 +183,7 @@ router.put('/mudarAlunoTurma', (req, res) => {
     });
 });
 
-router.put('/mudarProfessorTurma/', (req, res) => {
+router.put("/mudarProfessorTurma/", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -194,36 +191,40 @@ router.put('/mudarProfessorTurma/', (req, res) => {
             });
         }
 
-        let arrayTurmasProfessor = []
+        let arrayTurmasProfessor = [];
 
-        const sqlTurmasAtuais = 'SELECT idTurma FROM tblTurmaProfessor WHERE idProfessor = ?';
-        connection.query(sqlTurmasAtuais, req.body.idProfessor, (error, result, field) => {
-            if (error) {
-                return res.status(500).send({
-                    error: error,
-                    response: null,
-                });
+        const sqlTurmasAtuais =
+            "SELECT idTurma FROM tblTurmaProfessor WHERE idProfessor = ?";
+        connection.query(
+            sqlTurmasAtuais,
+            req.body.idProfessor,
+            (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+
+                let result_obj = result;
+                for (let t = 0; t < result_obj.length; t++) {
+                    let result_json = result_obj[t];
+                    let idTurma = result_json[Object.keys(result_json)[0]];
+
+                    arrayTurmasProfessor.push(idTurma);
+                }
+
+                let arrayNovasTurmas = req.body.novasTurmas;
+
+                console.log(arrayTurmasProfessor);
+                console.log(arrayNovasTurmas);
+
+                for (let i = 0; i < arrayTurmasProfessor.length; i++) {
+                    console.log(arrayNovasTurmas);
+                    // arrayTurmasProfessor.includes()
+                }
             }
-
-            let result_obj = result;
-            for (let t = 0; t < result_obj.length; t++){
-                let result_json = result_obj[t];
-                let idTurma = result_json[Object.keys(result_json)[0]];
-
-                arrayTurmasProfessor.push(idTurma)
-            }
-
-            let arrayNovasTurmas = req.body.novasTurmas
-
-            console.log(arrayTurmasProfessor)
-            console.log(arrayNovasTurmas)
-            
-            for (let i = 0; i < arrayTurmasProfessor.length; i++){
-                console.log(arrayNovasTurmas)
-                // arrayTurmasProfessor.includes()
-            }
-            
-        });
+        );
     });
 });
 

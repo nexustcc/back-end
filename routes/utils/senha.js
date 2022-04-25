@@ -1,7 +1,8 @@
-"use strict"
+"use strict";
 
 function randomizarSenha() {
-    var chars = "0123456789abcdefghijklmnopqrstuvwxyz!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    var chars =
+        "0123456789abcdefghijklmnopqrstuvwxyz!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     var passwordLength = 8;
     var password = "";
 

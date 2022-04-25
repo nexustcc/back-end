@@ -69,12 +69,11 @@ router.post("/cadastrarProfessor/:idInstituicao", (req, res) => {
                 sqlProfessor,
                 valuesProfessor,
                 (error, result, field) => {
-                    if (error) {
-                        return res.status(500).send({
-                            error: error,
-                            response: null,
-                        });
-                    }
+                    // if (error) {
+                    //     return res.status(500).send({
+                    //         error: error,
+                    //     });
+                    // }
 
                     idProfessor = result.insertId;
 
@@ -88,12 +87,11 @@ router.post("/cadastrarProfessor/:idInstituicao", (req, res) => {
                             sqlProfessorCurso,
                             [idProfessor, cursos[i]],
                             (error, result, field) => {
-                                if (error) {
-                                    return res.status(400).json({
-                                        status_code: 0,
-                                        error_msg: "Require Params Missing",
-                                    });
-                                }
+                                // if (error) {
+                                //     return res.status(500).send({
+                                //         error: error,
+                                //     });
+                                // }
                             }
                         );
                     }
@@ -105,12 +103,11 @@ router.post("/cadastrarProfessor/:idInstituicao", (req, res) => {
                             "INSERT INTO tblTurmaProfessor (idProfessor, idTurma) VALUES (?, ?)",
                             [idProfessor, turmas[t]],
                             (error, result, field) => {
-                                if (error) {
-                                    return res.status(400).json({
-                                        status_code: 0,
-                                        error_msg: "Require Params Missing",
-                                    });
-                                }
+                                // if (error) {
+                                //     return res.status(500).send({
+                                //     error: error,
+                                //     });
+                                // }
                             }
                         );
                     }
@@ -192,23 +189,16 @@ router.get("/listarCursos/:idProfessor", (req, res) => {
                 cursosProfessor.push(idCurso);
             }
 
-            res.status(200).send({
-                cursos: cursosProfessor,
-            });
+            console.log(cursosProfessor)
+
+            let cursos = []
 
             let sqlNomeCurso = "SELECT nome FROM tblCurso WHERE idCurso = ?";
-
             for (var i = 0; i < cursosProfessor.length; i++) {
-                //console.log(cursosProfessor[i]);
-
                 connection.query(
                     sqlNomeCurso,
                     cursosProfessor[i],
-
-                    (error, resultado, field) => {
-                        //cursos[i] = resultado[0].nome
-                        console.log(resultado);
-
+                    (error, result, field) => {
                         if (error) {
                             return res.status(500).send({
                                 error: error,
@@ -216,10 +206,19 @@ router.get("/listarCursos/:idProfessor", (req, res) => {
                             });
                         }
 
-                        //console.log(resultado[0].nome);
+                        cursos.push(result[0].nome)
+                        console.log(cursos)
+
                     }
-                );
+                    );
             }
+
+            console.log('teste: ' + cursos)
+                
+            res.status(200).send({
+                cursos: cursos,
+            });
+            
         });
 
         // let sqlNomeCurso = "SELECT nome FROM tblCurso WHERE idCurso = ?";

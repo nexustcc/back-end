@@ -71,8 +71,8 @@ router.get("/listarTurma/:idTurma", (req, res) => {
             });
         }
 
-        const sql = "SELECT * FROM tblTurma WHERE idTurma = ?";
-        connection.query(sql, req.params.idTurma, (error, result, field) => {
+        const sqlAlunos = 'SELECT idAluno FROM tblAluno WHERE idTurma = ?'
+        connection.query(sqlAlunos, req.params.idTurma, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
                     error: error,
@@ -80,17 +80,30 @@ router.get("/listarTurma/:idTurma", (req, res) => {
                 });
             }
 
-            res.status(200).send({
-                turma: result.map((turma) => {
-                    return {
-                        idTurma: turma.idTurma,
-                        nome: turma.nome,
-                        dataInicio: converterData(turma.dataInicio),
-                        dataConclusao: converterData(turma.dataConclusao),
-                        idCurso: turma.idCurso,
-                    };
-                }),
-            });
+            let numeroDeAlunos = result.length
+
+            const sql = "SELECT * FROM tblTurma WHERE idTurma = ?";
+            connection.query(sql, req.params.idTurma, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+
+                res.status(200).send({
+                    turma: result.map((turma) => {
+                        return {
+                            idTurma: turma.idTurma,
+                            nome: turma.nome,
+                            dataInicio: turma.dataInicio,
+                            dataConclusao: turma.dataConclusao,
+                            idCurso: turma.idCurso,
+                            numeroDeAlunos: numeroDeAlunos
+                        };
+                    }),
+                });
+            })
         });
     });
 });

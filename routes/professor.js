@@ -1,4 +1,8 @@
-// A ROTA DA LINHA 163 ESTÁ COM ERRO
+/**
+ * TODO: A rota /listarUsuarios/:idProfessor, da linha 217, está com erros, ainda é necessário fazer o retorno dos avaliadores
+ * 
+ * SELECT tblAvaliadorGrupo.idAvaliador FROM tblAvaliadorGrupo INNER JOIN tblGrupo ON tblGrupo.idGrupo = tblAvaliadorGrupo.idGrupo INNER JOIN tblProfessorGrupo ON tblProfessorGrupo.idGrupo = tblGrupo.idGrupo WHERE idProfessor = 58;
+ */
 
 const express = require("express");
 const router = express.Router();
@@ -158,8 +162,6 @@ router.get("/listarProfessor/:idProfessor", (req, res) => {
     });
 });
 
-//ESSA ROTA ESTÁ COM ERRO
-
 router.get("/listarCursos/:idProfessor", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -168,10 +170,9 @@ router.get("/listarCursos/:idProfessor", (req, res) => {
             });
         }
 
-        const sql = "SELECT idCurso FROM tblProfessorCurso WHERE idProfessor = ?";
+        const sql =
+            "SELECT tblCurso.nome FROM tblProfessorCurso INNER JOIN tblProfessor ON tblProfessor.idProfessor = tblProfessorCurso.idProfessor INNER JOIN tblCurso ON tblCurso.idcurso = tblProfessorCurso.idCurso WHERE tblProfessorCurso.idProfessor = ?";
         const values = [req.params.idProfessor];
-
-        let cursosProfessor = [];
 
         connection.query(sql, values, (error, result, field) => {
             if (error) {
@@ -181,76 +182,125 @@ router.get("/listarCursos/:idProfessor", (req, res) => {
                 });
             }
 
-            let result_obj = result;
-
-            console.log(result_obj);
-
-            for (let c = 0; c < result_obj.length; c++) {
-                let result_json = result_obj[c];
-                let idCurso = result_json[Object.keys(result_json)[0]];
-                cursosProfessor.push(idCurso);
-            }
-
-            console.log(cursosProfessor)
-
-            let cursos = []
-
-            let sqlNomeCurso = "SELECT nome FROM tblCurso WHERE idCurso = ?";
-            for (var i = 0; i < cursosProfessor.length; i++) {
-                connection.query(
-                    sqlNomeCurso,
-                    cursosProfessor[i],
-                    (error, result, field) => {
-                        if (error) {
-                            return res.status(500).send({
-                                error: error,
-                                response: null,
-                            });
-                        }
-
-                        cursos.push(result[0].nome)
-                        console.log(cursos)
-
-                    }
-                    );
-            }
-
-            console.log('teste: ' + cursos)
-                
             res.status(200).send({
-                cursos: cursos,
+                cursos: result,
             });
-            
         });
+    });
+});
 
-        // let sqlNomeCurso = "SELECT nome FROM tblCurso WHERE idCurso = ?";
-        // let cursos = [];
+router.get("/listarTurmas/:idProfessor", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
 
-        //     for (var i = 0; i < cursosProfessor.length; i++) {
+        const sql =
+            "SELECT tblTurma.nome FROM tblTurmaProfessor INNER JOIN tblProfessor ON tblProfessor.idProfessor = tblTurmaProfessor.idProfessor INNER JOIN tblTurma ON tblTurma.idTurma = tblTurmaProfessor.idTurma WHERE tblTurmaProfessor.idProfessor = ?";
+        const values = [req.params.idProfessor];
 
-        //         connection.query(
-        //             sqlNomeCurso,
-        //             cursosProfessor[i],
+        connection.query(sql, values, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
 
-        //             (error, resultado, field) => {
-        //                 cursos[i] = resultado[0].nome
-        //                 console.log(resultado)
+            res.status(200).send({
+                turmas: result,
+            });
+        });
+    });
+});
 
-        //                 if (error) {
-        //                     return res.status(500).send({
-        //                         error: error,
-        //                         response: null
-        //                     })
-        //                 }
+router.get("/listarUsuarios/:idProfessor", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
 
-        //                 //console.log(resultado[0].nome);
-        //             }
-        //         )
-        //     }
+        const sqlAlunos =
+            "SELECT tblAluno.idAluno FROM tblAluno INNER JOIN tblTurma ON tblTurma.idTurma = tblAluno.idTurma INNER JOIN tblTurmaProfessor ON tblTurmaProfessor.idTurma = tblTurma.idTurma WHERE idProfessor = ?";
+        const valuesAlunos = [req.params.idProfessor];
 
-        //     res.status(200).send({
-        //         cursos: cursosProfessor,
-        //     });
+        connection.query(sqlAlunos, valuesAlunos, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            let idAlunos = [];
+
+            for (let a = 0; a < result.length; a++) {
+                idAlunos.push(result[a].idAluno);
+            }
+
+            let arrayAlunos = new Array();
+
+            console.log(idAlunos);
+
+            const sqlAlunoNome =
+                "SELECT nome FROM tblUsuario INNER JOIN tblAluno ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE idAluno = ?";
+
+            for (let n = 0; n < idAlunos.length; n++) {
+                connection.query(sqlAlunoNome, idAlunos[n], (error, result, field) => {
+                    if (error) {
+                        return res.status(500).send({
+                            error: error,
+                            response: null,
+                        });
+                    }
+
+                    arrayAlunos.push(result[0].nome);
+                    console.log(arrayAlunos[n]);
+                });
+
+                console.log(arrayAlunos + "teste");
+            }
+            console.log(arrayAlunos + "teste2");
+
+            res.status(200).send({
+                alunos: arrayAlunos,
+            });
+        });
+    });
+});
+
+/**
+ * TODO: Essa rota está retornando alguns valores nulls, caso isso seja um problema, é necessário corrigi-lo.
+ */
+
+router.get("/listarGrupos/:idProfessor", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql =
+            "SELECT nomeGrupo FROM tblGrupo INNER JOIN tblProfessorGrupo ON tblGrupo.idGrupo = tblProfessorGrupo.idGrupo WHERE idProfessor = ?";
+        const values = [req.params.idProfessor];
+
+        connection.query(sql, values, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(200).send({
+                turmas: result,
+            });
+        });
     });
 });
 

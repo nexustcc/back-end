@@ -85,6 +85,54 @@ router.post("/cadastrarAluno/:idTurma", (req, res) => {
     });
 });
 
+router.post("/cadastrarAluno", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let senha = randomizarSenha();
+
+        let idUsuario;
+
+        const sqlUsuario =
+            "INSERT INTO tblUsuario (nome, email, senha) VALUES (?, ?, ?)";
+        const valuesUsuario = [req.body.nome, req.body.email, senha];
+        connection.query(sqlUsuario, valuesUsuario, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+            console.log("cadastrou usuario");
+            idUsuario = result.insertId;
+            idGrupo = 0;
+
+            const sqlAluno =
+                "INSERT INTO tblAluno (idTurma, idUsuario, idGrupo) VALUES (?, ?, ?)";
+            const valuesAluno = [req.body.idTurma, idUsuario, req.body.idGrupo];
+            connection.query(sqlAluno, valuesAluno, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+
+                run(senha, req.body.email, req.body.nome);
+
+                res.status(202).send({
+                    message: "Aluno Cadastrado com Sucesso",
+                });
+            });
+        });
+    });
+});
+
+
 router.put("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
     console.log(req.file);
     mysql.connect((error, connection) => {

@@ -90,6 +90,7 @@ router.get("/listarGrupo/:idGrupo", (req, res) => {
             res.status(200).send({
                 grupo: result.map((grupo) => {
                     return {
+                        idGrupo: grupo.idGrupo,
                         nomeProjeto: grupo.nomeProjeto,
                         temaProjeto: grupo.temaProjeto,
                         numeracao: grupo.numeracao,
@@ -123,6 +124,7 @@ router.get("/listarGrupos/:idTurma", (req, res) => {
             res.status(200).send({
                 grupos: result.map((grupo) => {
                     return {
+                        idGrupo: grupo.idGrupo,
                         nomeProjeto: grupo.nomeProjeto,
                         temaProjeto: grupo.temaProjeto,
                         numeracao: grupo.numeracao,

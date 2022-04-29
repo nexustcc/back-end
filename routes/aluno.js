@@ -162,10 +162,8 @@ router.put("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
                 idUsuario = result_json["idUsuario"];
 
                 const sqlEditUsuario =
-                    "UPDATE tblUsuario SET nome = ?, email = ?, senha = ? WHERE idUsuario = ?";
+                    "UPDATE tblUsuario SET senha = ? WHERE idUsuario = ?";
                 const valuesUsuario = [
-                    req.body.nome,
-                    req.body.email,
                     req.body.senha,
                     idUsuario,
                 ];
@@ -284,6 +282,92 @@ router.get("/listarAlunos/:idTurma", (req, res) => {
         });
     });
 });
+
+
+
+router.get('/informacoesGrupo/:idAluno', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let grupo
+        let alunos = []
+        let professores = []
+
+        const sqlGrupo = 'SELECT * FROM tblGrupo INNER JOIN tblAluno ON tblGrupo.idGrupo = tblAluno.idGrupo WHERE idAluno = ?'
+        connection.query(
+            sqlGrupo,
+            req.params.idAluno,
+            (error, result, field) => {
+                grupo = result
+
+                const sqlAlunos = 'SELECT idAluno FROM tblAluno WHERE idGrupo = ?'
+                connection.query(
+                    sqlAlunos,
+                    grupo[0].idGrupo,
+                    (error, result, field) => {
+
+                        let idAlunos = []
+
+                        for (let a = 0; a < result.length; a++) {
+                            if(result[a].idAluno != req.params.idAluno){
+                                idAlunos.push(result[a].idAluno)
+                            }
+                        }
+
+                        for (let a = 0; a < idAlunos.length; a++) {
+                            const sqlNomeAluno = 'SELECT nome FROM tblUsuario INNER JOIN tblAluno ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE idAluno = ?'
+                            connection.query(
+                                sqlNomeAluno,
+                                idAlunos[a],
+                                (error, result, field) => {
+                                    alunos.push(result[0].nome)
+                                }
+                            )
+                        }
+
+                        const sqlIdProfessores = 'SELECT idProfessor FROM tblProfessorGrupo WHERE idGrupo = ?'
+                        connection.query(
+                            sqlIdProfessores,
+                            grupo[0].idGrupo,
+                            (error, result, field) => {
+
+                                let idProfessores = []
+
+                                for (let a = 0; a < result.length; a++) {
+                                    idProfessores.push(result[a].idProfessor)
+                                }
+                                
+                                console.log(idProfessores)                                
+
+                                for (let a = 0; a < idProfessores.length; a++) {
+                                    const sqlNomeProfessores = 'SELECT nome FROM tblUsuario INNER JOIN tblProfessor ON tblProfessor.idUsuario = tblUsuario.idUsuario WHERE idProfessor = ?'
+                                    connection.query(
+                                        sqlNomeProfessores,
+                                        idProfessores[a],
+                                        (error, result, field) => {
+                                            professores.push(result[0].nome)
+                                        }
+                                    )
+                                }
+
+                                console.log('PROFESSORES: ' + professores)
+                                
+
+                                res.status(202).send({
+                                    grupo: grupo,
+                                    alunos: alunos,
+                                    professores: professores
+                                });
+                            })
+                        })
+                    })
+            })
+})
+
 
 router.delete("/deletarAluno/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {

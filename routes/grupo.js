@@ -92,11 +92,7 @@ router.get("/listarGrupo/:idGrupo", (req, res) => {
                     return {
                         idGrupo: grupo.idGrupo,
                         nomeProjeto: grupo.nomeProjeto,
-                        temaProjeto: grupo.temaProjeto,
                         numeracao: grupo.numeracao,
-                        nomeGrupo: grupo.nomeGrupo,
-                        dataApresentacao: grupo.dataApresentacao,
-                        horaApresentacao: grupo.horaApresentacao,
                     };
                 }),
             });

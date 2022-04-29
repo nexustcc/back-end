@@ -1,6 +1,6 @@
 /**
  * TODO: A rota /listarUsuarios/:idProfessor, da linha 217, está com erros, ainda é necessário fazer o retorno dos avaliadores
- * 
+ *
  * SELECT tblAvaliadorGrupo.idAvaliador FROM tblAvaliadorGrupo INNER JOIN tblGrupo ON tblGrupo.idGrupo = tblAvaliadorGrupo.idGrupo INNER JOIN tblProfessorGrupo ON tblProfessorGrupo.idGrupo = tblGrupo.idGrupo WHERE idProfessor = 58;
  */
 
@@ -556,8 +556,7 @@ router.put(
     }
 );
 
-
-router.get('/pegarInstituicao/:idProfessor', (req, res) => {
+router.get("/pegarInstituicao/:idProfessor", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -565,7 +564,7 @@ router.get('/pegarInstituicao/:idProfessor', (req, res) => {
             });
         }
 
-        const sql = 'SELECT idInstituicao FROM tblProfessor WHERE idProfessor = ?'
+        const sql = "SELECT idInstituicao FROM tblProfessor WHERE idProfessor = ?";
         connection.query(sql, req.params.idProfessor, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
@@ -577,10 +576,9 @@ router.get('/pegarInstituicao/:idProfessor', (req, res) => {
             res.status(202).send({
                 idInstituicao: result[0].idInstituicao,
             });
-
-        })
-    })
-})
+        });
+    });
+});
 
 router.delete("/deletarProfessor/:idProfessor", (req, res) => {
     mysql.connect((error, connection) => {

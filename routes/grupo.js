@@ -134,6 +134,30 @@ router.get("/listarGrupos/:idTurma", (req, res) => {
     });
 });
 
+router.get("/pegarInstituicao/:idAvaliador", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql = "SELECT idInstituicao FROM tblAvaliador WHERE idAvaliador = ?";
+        connection.query(sql, req.params.idAvaliador, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                idInstituicao: result[0].idInstituicao,
+            });
+        });
+    });
+});
+
 router.delete("/deletarGrupo/:idGrupo", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {

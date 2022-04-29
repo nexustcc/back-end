@@ -556,6 +556,32 @@ router.put(
     }
 );
 
+
+router.get('/pegarInstituicao/:idProfessor', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql = 'SELECT idInstituicao FROM tblProfessor WHERE idProfessor = ?'
+        connection.query(sql, req.params.idProfessor, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                idInstituicao: result[0].idInstituicao,
+            });
+
+        })
+    })
+})
+
 router.delete("/deletarProfessor/:idProfessor", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {

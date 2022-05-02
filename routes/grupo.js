@@ -70,6 +70,57 @@ router.put("/editarGrupo/:idGrupo", (req, res) => {
     });
 });
 
+
+router.put("/editarGrupoAluno/:idAluno", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sqlGrupoAluno = 'SELECT idGrupo FROM tblAluno WHERE idAluno = ?'
+        connection.query(
+            sqlGrupoAluno, 
+            req.params.idAluno, 
+            (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+
+                let result_obj = result;
+                let result_json = result_obj[Object.keys(result_obj)[0]];
+                let idGrupo = result_json["idGrupo"];
+                
+                const sqlEditGrupo = "UPDATE tblGrupo SET temaProjeto = ?, descricao = ? WHERE idGrupo = ?";
+                const valuesGrupo = [
+                    req.body.temaProjeto,
+                    req.body.descricao,
+                    idGrupo,
+                ];
+        
+                connection.query(sqlEditGrupo, valuesGrupo, (error, result, field) => {
+                    if (error) {
+                        return res.status(500).send({
+                            error: error,
+                            response: null,
+                        });
+                    }
+        
+                    res.status(202).send({
+                        message: "Grupo Editado com Sucesso",
+                    });
+                });
+        });
+
+    });
+});
+
+
+
 router.get("/listarGrupo/:idGrupo", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {

@@ -133,7 +133,7 @@ router.post("/cadastrarAluno", (req, res) => {
 });
 
 
-router.put("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
+router.post("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
     console.log(req.file);
     mysql.connect((error, connection) => {
         if (error) {
@@ -296,6 +296,7 @@ router.get('/informacoesGrupo/:idAluno', (req, res) => {
         let grupo
         let alunos = []
         let professores = []
+        let andamento = []
 
         const sqlGrupo = 'SELECT * FROM tblGrupo INNER JOIN tblAluno ON tblGrupo.idGrupo = tblAluno.idGrupo WHERE idAluno = ?'
         connection.query(
@@ -329,39 +330,56 @@ router.get('/informacoesGrupo/:idAluno', (req, res) => {
                             )
                         }
 
-                        const sqlIdProfessores = 'SELECT idProfessor FROM tblProfessorGrupo WHERE idGrupo = ?'
+                        const sqlIdProfessores = 'SELECT nome FROM tblUsuario INNER JOIN tblProfessor ON tblProfessor.idUsuario = tblUsuario.idUsuario INNER JOIN tblProfessorGrupo ON tblProfessorGrupo.idProfessor = tblProfessor.idProfessor WHERE idGrupo = ?'
                         connection.query(
                             sqlIdProfessores,
                             grupo[0].idGrupo,
                             (error, result, field) => {
-
-                                let idProfessores = []
-
-                                for (let a = 0; a < result.length; a++) {
-                                    idProfessores.push(result[a].idProfessor)
+                                if (error) {
+                                    return res.status(500).send({
+                                        error: error,
+                                        response: null,
+                                    });
                                 }
-                                
-                                console.log(idProfessores)                                
 
-                                for (let a = 0; a < idProfessores.length; a++) {
-                                    const sqlNomeProfessores = 'SELECT nome FROM tblUsuario INNER JOIN tblProfessor ON tblProfessor.idUsuario = tblUsuario.idUsuario WHERE idProfessor = ?'
-                                    connection.query(
-                                        sqlNomeProfessores,
-                                        idProfessores[a],
-                                        (error, result, field) => {
-                                            professores.push(result[0].nome)
+                                for (let p = 0; p < result.length; p++) {
+                                    professores.push(result[p].nome)
+                                }
+
+                                const sqlAndamento = 'SELECT * FROM tblTarefa INNER JOIN tblAluno ON tblAluno.idAluno = tblTarefa.idAluno WHERE idGrupo = ?'
+                                connection.query(
+                                    sqlAndamento,
+                                    grupo[0].idGrupo,
+                                    (error, result, field) => {
+                                        if (error) {
+                                            return res.status(500).send({
+                                                error: error,
+                                                response: null,
+                                            });
                                         }
-                                    )
-                                }
 
-                                console.log('PROFESSORES: ' + professores)
-                                
+                                        let total = []
+                                        let concluidas = []
+                                        
+                                        for (let t = 0; t < result.length; t++) {
+                                            total.push(result[t].idTarefa)
+                                            if(result[t].status == 'Concluída'){
+                                                concluidas.push(result[t].status)
+                                            }
+                                        }
 
-                                res.status(202).send({
-                                    grupo: grupo,
-                                    alunos: alunos,
-                                    professores: professores
-                                });
+                                        let porcentagemProjetoConcluido = (100 * concluidas.length) / total.length
+
+                                        res.status(202).send({
+                                            grupo: grupo,
+                                            alunos: alunos,
+                                            professores: professores,
+                                            andamento: porcentagemProjetoConcluido
+                                        });
+
+                                    }
+                                )
+
                             })
                         })
                     })

@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const mysql = require("../mysql");
+const run = require("./utils/enviarEmail");
+const randomizarSenha = require("./utils/senha");
 
 router.post("/cadastrarAvaliador/:idInstituicao", (req, res) => {
+
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -10,13 +13,15 @@ router.post("/cadastrarAvaliador/:idInstituicao", (req, res) => {
             });
         }
 
+        let senha = randomizarSenha();
         let idUsuario;
         let idAvaliador;
         let idGrupos;
 
         const sqlUsuario =
             "INSERT INTO tblusuario (nome, email, senha) VALUES (?, ?, ?)";
-        const valuesUsuario = [req.body.nome, req.body.email, req.body.senha];
+        const valuesUsuario = [req.body.nome, req.body.email, senha];
+
         connection.query(sqlUsuario, valuesUsuario, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
@@ -66,6 +71,8 @@ router.post("/cadastrarAvaliador/:idInstituicao", (req, res) => {
                             }
                         );
                     }
+
+                    run(senha, req.body.email, req.body.nome);
 
                     res.status(202).send({
                         message: "Avaliador Cadastrado",
@@ -148,6 +155,30 @@ router.get("/listarGruposAvaliador/:idAvaliador", (req, res) => {
 
             res.status(200).send({
                 grupos: result,
+            });
+        });
+    });
+});
+
+router.get("/pegarInstituicao/:idAvaliador", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql = "SELECT idInstituicao FROM tblAvaliador WHERE idAvaliador = ?";
+        connection.query(sql, req.params.idAvaliador, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                idInstituicao: result[0].idInstituicao,
             });
         });
     });

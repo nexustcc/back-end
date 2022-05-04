@@ -209,6 +209,8 @@ router.get("/pegarInstituicao/:idAvaliador", (req, res) => {
     });
 });
 
+
+
 router.delete("/deletarGrupo/:idGrupo", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {

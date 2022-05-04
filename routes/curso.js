@@ -110,9 +110,8 @@ router.delete("/deletarCurso/:idCurso", (req, res) => {
             });
         }
 
-        const sql = "DELETE FROM tblcurso WHERE idCurso = ?";
-        const values = [req.params.idCurso];
-        connection.query(sql, values, (error, result, field) => {
+        const sqlProfessorCurso = 'DELETE FROM tblProfessorCurso WHERE idCurso = ?'
+        connection.query(sqlProfessorCurso, req.params.idCurso, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
                     error: error,
@@ -120,10 +119,31 @@ router.delete("/deletarCurso/:idCurso", (req, res) => {
                 });
             }
 
-            res.status(202).send({
-                message: "Curso deletado",
-            });
-        });
+            const sqlTurmas = 'SELECT idTurma FROM tblTurma WHERE idCurso = ?'
+            connection.query(sqlTurmas, req.params.idCurso, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+            })
+        })
+
+        // const sql = "DELETE FROM tblcurso WHERE idCurso = ?";
+        // const values = [req.params.idCurso];
+        // connection.query(sql, values, (error, result, field) => {
+        //     if (error) {
+        //         return res.status(500).send({
+        //             error: error,
+        //             response: null,
+        //         });
+        //     }
+
+        //     res.status(202).send({
+        //         message: "Curso deletado",
+        //     });
+        // });
     });
 });
 

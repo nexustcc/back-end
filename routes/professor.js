@@ -305,7 +305,7 @@ router.get("/listarGrupos/:idProfessor", (req, res) => {
 });
 
 router.put(
-    "/editarProfessor/:idProfessor",
+    "/editarProfessorCursosGrupos/:idProfessor",
     upload.single("foto"),
     (req, res) => {
         console.log(req.file);
@@ -555,6 +555,90 @@ router.put(
         });
     }
 );
+
+router.put("/editarProfessor/:idProfessor", upload.single("foto"), (req, res) => {
+    console.log(req.body);
+
+    return res.send();
+
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let idUsuario;
+
+        const sqlGetIdUsuario = "SELECT idUsuario FROM tblProfessor WHERE idProfessor= ?";
+        const valuesGetIdUsuario = [req.params.idProfessor];
+
+        connection.query(
+            sqlGetIdUsuario,
+            valuesGetIdUsuario,
+            (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+                let result_obj = result;
+                let result_json = result_obj[Object.keys(result_obj)[0]];
+                idUsuario = result_json["idUsuario"];
+
+                const sqlEditUsuario =
+                    "UPDATE tblUsuario SET email = ?, nome = ?, senha = ? WHERE idUsuario = ?";
+                const valuesUsuario = [
+                    req.body.email,
+                    req.body.nome,
+                    req.body.senha,
+                    idUsuario,
+                ];
+                connection.query(
+                    sqlEditUsuario,
+                    valuesUsuario,
+                    (error, result, field) => {
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
+                        }
+
+                        let foto;
+
+                        if (req.file == undefined) {
+                            foto = "uploads/fotopadrao.svg";
+                        } else {
+                            foto = req.file.path;
+                        }
+
+                        const sqlEditProfessor =
+                            "UPDATE tblProfessor SET foto = ? WHERE idProfessor = ?";
+                        const valuesEditProfessor = [foto, req.params.idProfessor];
+                        mysql.query(
+                            sqlEditProfessor,
+                            valuesEditProfessor,
+                            (error, result, field) => {
+                                if (error) {
+                                    return res.status(500).send({
+                                        error: error,
+                                        response: null,
+                                    });
+                                }
+
+                                res.status(201).send({
+                                    message: "professor editado",
+                                });
+                            }
+                        );
+                    }
+                );
+            }
+        );
+    });
+});
 
 router.get("/pegarInstituicao/:idProfessor", (req, res) => {
     mysql.connect((error, connection) => {

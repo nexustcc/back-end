@@ -71,7 +71,9 @@ router.get("/listarTurma/:idTurma", (req, res) => {
             });
         }
 
-        const sqlAlunos = 'SELECT idAluno FROM tblAluno WHERE idTurma = ?'
+        let nomeCurso
+
+        const sqlAlunos = 'SELECT tblAluno.idAluno FROM tblAluno INNER JOIN tblGrupo ON tblAluno.idGrupo = tblGrupo.idGrupo WHERE tblGrupo.idTurma = ?'
         connection.query(sqlAlunos, req.params.idTurma, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
@@ -82,8 +84,8 @@ router.get("/listarTurma/:idTurma", (req, res) => {
 
             let numeroDeAlunos = result.length
 
-            const sql = "SELECT * FROM tblTurma WHERE idTurma = ?";
-            connection.query(sql, req.params.idTurma, (error, result, field) => {
+            const sqlNomeCurso = 'SELECT tblCurso.nome FROM tblCurso INNER JOIN tblTurma ON tblTurma.idCurso = tblCurso.idCurso WHERE idTurma = ?'
+            connection.query(sqlNomeCurso, req.params.idTurma, (error, result, field) => {
                 if (error) {
                     return res.status(500).send({
                         error: error,
@@ -91,18 +93,37 @@ router.get("/listarTurma/:idTurma", (req, res) => {
                     });
                 }
 
-                res.status(200).send({
-                    turma: result.map((turma) => {
-                        return {
-                            idTurma: turma.idTurma,
-                            nome: turma.nome,
-                            dataInicio: turma.dataInicio,
-                            dataConclusao: turma.dataConclusao,
-                            idCurso: turma.idCurso,
-                            numeroDeAlunos: numeroDeAlunos
-                        };
-                    }),
-                });
+                console.log('númro da Turma: ' + req.params.idTurma)
+
+                if(result[0].nome.length >= 1){
+                    nomeCurso = result[0].nome
+                    console.log(nomeCurso)
+                }
+                
+
+                const sql = "SELECT * FROM tblTurma WHERE idTurma = ?";
+                connection.query(sql, req.params.idTurma, (error, result, field) => {
+                    if (error) {
+                        return res.status(500).send({
+                            error: error,
+                            response: null,
+                        });
+                    }
+
+                    res.status(200).send({
+                        turma: result.map((turma) => {
+                            return {
+                                idTurma: turma.idTurma,
+                                nome: turma.nome,
+                                nomeCurso: nomeCurso,
+                                dataInicio: converterData(turma.dataInicio),
+                                dataConclusao: converterData(turma.dataConclusao),
+                                numeroDeAlunos: numeroDeAlunos
+                            };
+                        }),
+                    });
+                })
+
             })
         });
     });

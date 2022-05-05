@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
         cb(null, "./uploads/");
     },
     filename: function (req, file, cb) {
-        cb(null, md5(file.originalname) + file.originalname);
+        cb(null, Date.now() + md5(file.originalname) + file.originalname);
     },
 });
 
@@ -558,8 +558,7 @@ router.put(
 
 router.put("/editarProfessor/:idProfessor", upload.single("foto"), (req, res) => {
     console.log(req.body);
-
-    return res.send();
+    console.log(req.file);
 
     mysql.connect((error, connection) => {
         if (error) {

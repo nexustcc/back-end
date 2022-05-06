@@ -67,8 +67,8 @@ router.post("/cadastrarProfessor/:idInstituicao", (req, res) => {
             idUsuario = result.insertId;
 
             const sqlProfessor =
-                "INSERT INTO tblProfessor (idInstituicao, idUsuario) VALUES (?, ?)";
-            const valuesProfessor = [req.params.idInstituicao, idUsuario];
+                "INSERT INTO tblProfessor (foto, idInstituicao, idUsuario) VALUES (?, ?, ?)";
+            const valuesProfessor = ["uploads/fotopadrao.svg", req.params.idInstituicao, idUsuario];
             connection.query(
                 sqlProfessor,
                 valuesProfessor,
@@ -171,7 +171,7 @@ router.get("/listarCursos/:idProfessor", (req, res) => {
         }
 
         const sql =
-            "SELECT tblCurso.nome FROM tblProfessorCurso INNER JOIN tblProfessor ON tblProfessor.idProfessor = tblProfessorCurso.idProfessor INNER JOIN tblCurso ON tblCurso.idcurso = tblProfessorCurso.idCurso WHERE tblProfessorCurso.idProfessor = ?";
+            "SELECT tblCurso.nome, tblCurso.idCurso FROM tblProfessorCurso INNER JOIN tblProfessor ON tblProfessor.idProfessor = tblProfessorCurso.idProfessor INNER JOIN tblCurso ON tblCurso.idcurso = tblProfessorCurso.idCurso WHERE tblProfessorCurso.idProfessor = ?";
         const values = [req.params.idProfessor];
 
         connection.query(sql, values, (error, result, field) => {

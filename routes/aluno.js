@@ -38,52 +38,6 @@ const upload = multer({
     fileFilter: fileFilter,
 });
 
-router.post("/cadastrarAluno/:idTurma", (req, res) => {
-    mysql.connect((error, connection) => {
-        if (error) {
-            return res.status(500).send({
-                error: error,
-            });
-        }
-
-        let senha = randomizarSenha();
-
-        let idUsuario;
-
-        const sqlUsuario =
-            "INSERT INTO tblUsuario (nome, email, senha) VALUES (?, ?, ?)";
-        const valuesUsuario = [req.body.nome, req.body.email, senha];
-        connection.query(sqlUsuario, valuesUsuario, (error, result, field) => {
-            if (error) {
-                return res.status(500).send({
-                    error: error,
-                    response: null,
-                });
-            }
-            console.log("cadastrou usuario");
-            idUsuario = result.insertId;
-            idGrupo = 0;
-
-            const sqlAluno =
-                "INSERT INTO tblAluno (idTurma, idUsuario, idGrupo) VALUES (?, ?, ?)";
-            const valuesAluno = [req.params.idTurma, idUsuario, req.body.idGrupo];
-            connection.query(sqlAluno, valuesAluno, (error, result, field) => {
-                if (error) {
-                    return res.status(500).send({
-                        error: error,
-                        response: null,
-                    });
-                }
-
-                run(senha, req.body.email, req.body.nome);
-
-                res.status(202).send({
-                    message: "Aluno Cadastrado com Sucesso",
-                });
-            });
-        });
-    });
-});
 
 router.post("/cadastrarAluno", (req, res) => {
     mysql.connect((error, connection) => {
@@ -112,8 +66,8 @@ router.post("/cadastrarAluno", (req, res) => {
             idGrupo = 0;
 
             const sqlAluno =
-                "INSERT INTO tblAluno (idTurma, idUsuario, idGrupo) VALUES (?, ?, ?)";
-            const valuesAluno = [req.body.idTurma, idUsuario, req.body.idGrupo];
+                "INSERT INTO tblAluno (foto, idTurma, idUsuario, idGrupo) VALUES (?, ?, ?, ?)";
+            const valuesAluno = ["uploads/fotopadrao.svg", req.body.idTurma, idUsuario, req.body.idGrupo];
             connection.query(sqlAluno, valuesAluno, (error, result, field) => {
                 if (error) {
                     return res.status(500).send({

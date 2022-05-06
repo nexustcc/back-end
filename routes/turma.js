@@ -93,7 +93,7 @@ router.get("/listarTurma/:idTurma", (req, res) => {
                     });
                 }
 
-                console.log('númro da Turma: ' + req.params.idTurma)
+                console.log('número da Turma: ' + req.params.idTurma)
 
                 if(result[0].nome.length >= 1){
                     nomeCurso = result[0].nome
@@ -336,8 +336,7 @@ router.get("/membros/listarMembros/:idTurma", (req, res) => {
                     });
                 }
 
-                const sqlAlunos =
-                    "SELECT nome, foto FROM tblusuario INNER JOIN tblaluno ON tblusuario.idUsuario = tblaluno.idUsuario WHERE idTurma = ? ORDER BY nome";
+                const sqlAlunos = "SELECT tblUsuario.nome, foto, tblGrupo.nomeProjeto FROM tblusuario INNER JOIN tblaluno ON tblusuario.idUsuario = tblaluno.idUsuario INNER JOIN tblGrupo ON tblGrupo.idGrupo = tblAluno.idGrupo WHERE tblAluno.idTurma = ? ORDER BY tblGrupo.nomeProjeto AND tblUsuario.nome;";
                 connection.query(
                     sqlAlunos,
                     req.params.idTurma,

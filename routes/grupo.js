@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const mysql = require("../mysql");
+const converterData = require("./utils/date")
 const multer = require("multer");
 
 router.post("/cadastrarGrupo/:idTurma", (req, res) => {
@@ -138,15 +139,19 @@ router.get("/listarGrupo/:idGrupo", (req, res) => {
                 });
             }
 
-            res.status(200).send({
-                grupo: result.map((grupo) => {
+            res.status(200).send(
+                result.map((grupo) => {
                     return {
                         idGrupo: grupo.idGrupo,
                         nomeProjeto: grupo.nomeProjeto,
+                        temaProjeto: grupo.temaProjeto,
                         numeracao: grupo.numeracao,
+                        nomeGrupo: grupo.nomeGrupo,
+                        dataApresentacao: converterData(grupo.dataApresentacao),
+                        horaApresentacao: grupo.horaApresentacao,
                     };
                 }),
-            });
+            );
         });
     });
 });

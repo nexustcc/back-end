@@ -14,6 +14,7 @@ const rotaAvaliador = require("./routes/avaliador");
 const rotaAluno = require("./routes/aluno");
 const rotaGrupo = require("./routes/grupo");
 const rotaLogin = require("./routes/login");
+const rotaMobile = require('./routes/mobile')
 
 app.use(morgan("dev"));
 app.use(cors());
@@ -50,6 +51,7 @@ app.use("/avaliador", rotaAvaliador);
 app.use("/aluno", rotaAluno);
 app.use("/grupo", rotaGrupo);
 app.use("/login", rotaLogin);
+app.use("/mobile", rotaMobile);
 
 app.use((req, res, next) => {
     const erro = new Error("Não encontrado!");

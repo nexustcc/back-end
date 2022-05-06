@@ -153,9 +153,7 @@ router.get("/listarGruposAvaliador/:idAvaliador", (req, res) => {
                 });
             }
 
-            res.status(200).send({
-                grupos: result,
-            });
+            res.status(200).send(result);
         });
     });
 });

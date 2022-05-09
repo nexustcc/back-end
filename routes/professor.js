@@ -1,5 +1,5 @@
 /**
- * TODO: A rota /listarUsuarios/:idProfessor, da linha 217, está com erros, ainda é necessário fazer o retorno dos avaliadores
+ * TODO: A rota /listarUsuarios/:idProfessor, da linha 219, está com erros, ainda é necessário fazer o retorno dos avaliadores
  *
  * SELECT tblAvaliadorGrupo.idAvaliador FROM tblAvaliadorGrupo INNER JOIN tblGrupo ON tblGrupo.idGrupo = tblAvaliadorGrupo.idGrupo INNER JOIN tblProfessorGrupo ON tblProfessorGrupo.idGrupo = tblGrupo.idGrupo WHERE idProfessor = 58;
  */

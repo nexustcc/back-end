@@ -50,6 +50,7 @@ router.get("/avaliador/listarGrupo/:idGrupo", (req, res) => {
                         idGrupo: grupo.idGrupo,
                         nomeProjeto: grupo.nomeProjeto,
                         temaProjeto: grupo.temaProjeto,
+                        descricaoProjeto: grupo.descricao,
                         numeracao: grupo.numeracao,
                         nomeGrupo: grupo.nomeGrupo,
                         dataApresentacao: converterData(grupo.dataApresentacao),

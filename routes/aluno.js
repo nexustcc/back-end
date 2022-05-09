@@ -87,7 +87,7 @@ router.post("/cadastrarAluno", (req, res) => {
 });
 
 
-router.post("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
+router.put("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
     console.log(req.file);
     mysql.connect((error, connection) => {
         if (error) {

@@ -73,7 +73,7 @@ router.get("/listarTurma/:idTurma", (req, res) => {
 
         let nomeCurso
 
-        const sqlAlunos = 'SELECT tblAluno.idAluno FROM tblAluno INNER JOIN tblGrupo ON tblAluno.idGrupo = tblGrupo.idGrupo WHERE tblGrupo.idTurma = ?'
+        const sqlAlunos = 'SELECT tblUsuario.nome, tblAluno.foto FROM tblAluno INNER JOIN tblUsuario ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE idTurma = 1'
         connection.query(sqlAlunos, req.params.idTurma, (error, result, field) => {
             if (error) {
                 return res.status(500).send({

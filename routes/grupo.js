@@ -164,7 +164,7 @@ router.get("/listarGrupos/:idTurma", (req, res) => {
             });
         }
 
-        const sql = "SELECT * FROM tblGrupo WHERE idTurma = ?";
+        const sql = "SELECT * FROM tblGrupo WHERE idTurma = ? ORDER BY numeracao";
         connection.query(sql, req.params.idTurma, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
@@ -189,6 +189,69 @@ router.get("/listarGrupos/:idTurma", (req, res) => {
         });
     });
 });
+
+router.get('/informacoesGrupo/:idGrupo', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let grupo
+        let alunos
+        let professores
+        let andamento
+
+        const sqlGrupo = 'SELECT * FROM tblGrupo WHERE idGrupo = ?'
+        connection.query(sqlGrupo, req.params.idGrupo, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            grupo = result
+
+            console.log(result)
+
+            const sqlAlunos = 'SELECT tblAluno.foto, tblUsuario.nome FROM tblAluno INNER JOIN tblUsuario ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE tblAluno.idGrupo = ?'
+            connection.query(sqlAlunos, req.params.idGrupo, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+
+                console.log(result)
+
+                alunos = result
+
+                const sqlProfessores = 'SELECT tblProfessor.foto, tblUsuario.nome FROM tblProfessor INNER JOIN tblUsuario ON tblProfessor.idUsuario = tblUsuario.idUsuario INNER JOIN tblProfessorGrupo ON tblProfessor.idProfessor = tblProfessorGrupo.idProfessor WHERE tblProfessorGrupo.idGrupo = ?'
+                connection.query(sqlProfessores, req.params.idGrupo, (error, result, field) => {
+                    if (error) {
+                        return res.status(500).send({
+                            error: error,
+                            response: null,
+                        });
+                    }
+
+                    professores = result
+
+                    res.status(202).send({
+                        grupo: grupo,
+                        alunos: alunos,
+                        professores: professores,
+                        // andamento: porcentagemProjetoConcluido
+                    });
+
+                })
+            })
+        })
+    })
+})
 
 router.get("/pegarInstituicao/:idAvaliador", (req, res) => {
     mysql.connect((error, connection) => {

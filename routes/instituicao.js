@@ -113,6 +113,7 @@ router.get("/listarInstituicao/:idInstituicao", (req, res) => {
 });
 
 
+
 router.get('/membros/listarMembros/:idInstituicao', (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -170,7 +171,7 @@ router.get('/membros/listarMembros/:idInstituicao', (req, res) => {
     })
 })
 
-router.get('/membros/listarProfessores/:idProfessor', (req, res) => {
+router.get('/membros/listarProfessor/:idProfessor', (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -235,7 +236,7 @@ router.get('/membros/listarProfessores/:idProfessor', (req, res) => {
     })
 })
 
-router.get('/membros/listarAlunos/:idAluno', (req, res) => {
+router.get('/membros/listarAluno/:idAluno', (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -243,7 +244,12 @@ router.get('/membros/listarAlunos/:idAluno', (req, res) => {
             });
         }
 
-        const sqlAluno = 'SELECT tblusuario.nome, email, senha, tblcurso.nome, tblturma.nome, nomeProjeto FROM tblusuario INNER JOIN tblaluno ON tblaluno.idUsuario = tblusuario.idUsuario INNER JOIN tblgrupo ON tblgrupo.idGrupo = tblaluno.idGrupo INNER JOIN tblturma ON tblturma.idTurma = tblaluno.idTurma INNER JOIN tblcurso ON tblcurso.idCurso = tblturma.idCurso WHERE idAluno = ?'
+        let aluno
+        let curso
+        let turma
+        let grupo
+
+        const sqlAluno = 'SELECT tblusuario.nome, tblusuario.email, tblusuario.senha FROM tblusuario INNER JOIN tblaluno ON tblaluno.idUsuario = tblusuario.idUsuario WHERE idAluno = ?'
         connection.query(sqlAluno, req.params.idAluno, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
@@ -252,21 +258,128 @@ router.get('/membros/listarAlunos/:idAluno', (req, res) => {
                 });
             }
 
-            console.log(result[0])
+            aluno = result[0]
 
-            aluno: result.map((aluno) => {
-                return {
-                    foto: aluno.foto,
-                    usuario: {
-                        nome: aluno.nome,
-                        email: aluno.email,
-                        senha: aluno.senha
+            const sqlCurso = 'SELECT tblcurso.nome FROM tblcurso INNER JOIN tblturma ON tblturma.idCurso = tblcurso.idCurso INNER JOIN tblaluno ON tblaluno.idTurma = tblturma.idTurma WHERE idAluno = ?'
+            connection.query(sqlCurso, req.params.idAluno, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+    
+                curso = result[0]
+
+                const sqlTurma = 'SELECT tblturma.nome FROM tblturma INNER JOIN tblaluno ON tblaluno.idTurma = tblturma.idTurma WHERE idAluno = ?'
+                connection.query(sqlTurma, req.params.idAluno, (error, result, field) => {
+                    if (error) {
+                        return res.status(500).send({
+                            error: error,
+                            response: null,
+                        });
                     }
-                };
+        
+                    turma = result[0]
+
+                    const sqlGrupo = 'SELECT tblgrupo.nomeProjeto FROM tblgrupo INNER JOIN tblaluno ON tblaluno.idGrupo = tblgrupo.idGrupo WHERE idAluno = ?'
+                    connection.query(sqlGrupo, req.params.idAluno, (error, result, field) => {
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
+                        }
+            
+                        grupo = result[0]
+
+                        res.status(200).send({
+                            aluno: aluno,
+                            curso: curso,
+                            turma: turma,
+                            grupo: grupo
+                        })
+
+                    })
+                })
             })
         })
     })  
 })
+
+router.get('/membros/listarAvaliador/:idAvaliador', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let avaliador
+        let curso
+        let turma
+        let grupos = []
+
+        const sqlAvaliador = 'SELECT tblusuario.nome, tblusuario.email, tblusuario.senha FROM tblusuario INNER JOIN tblavaliador ON tblavaliador.idUsuario = tblusuario.idUsuario WHERE idAvaliador = ?'
+        connection.query(sqlAvaliador, req.params.idAvaliador, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            avaliador = result[0]
+
+            const sqlCurso = 'SELECT tblcurso.nome FROM tblcurso INNER JOIN tblturma ON tblturma.idCurso = tblcurso.idCurso INNER JOIN tblgrupo ON tblgrupo.idTurma = tblturma.idTurma INNER JOIN tblavaliadorgrupo ON tblavaliadorgrupo.idGrupo = tblgrupo.idGrupo WHERE idAvaliador = ?'
+            connection.query(sqlCurso, req.params.idAvaliador, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+    
+                curso = result[0]
+
+                const sqlTurma = 'SELECT tblturma.nome FROM tblturma INNER JOIN tblgrupo ON tblgrupo.idTurma = tblturma.idTurma INNER JOIN tblavaliadorgrupo ON tblavaliadorgrupo.idGrupo = tblgrupo.idGrupo WHERE idAvaliador = ?'
+                connection.query(sqlTurma, req.params.idAvaliador, (error, result, field) => {
+                    if (error) {
+                        return res.status(500).send({
+                            error: error,
+                            response: null,
+                        });
+                    }
+        
+                    turma = result[0]
+
+                    const sqlGrupo = 'SELECT tblgrupo.nomeProjeto FROM tblgrupo INNER JOIN tblavaliadorgrupo ON tblavaliadorgrupo.idGrupo = tblgrupo.idGrupo WHERE idAvaliador = ?'
+                    connection.query(sqlGrupo, req.params.idAvaliador, (error, result, field) => {
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
+                        }
+
+                        for (let g = 0; g < result.length; g++) {
+                            grupos.push(result[g].nomeProjeto)   
+                        }
+
+                        res.status(200).send({
+                            avaliador: avaliador,
+                            curso: curso,
+                            turma: turma,
+                            grupos: grupos
+                        })
+
+                    })
+                })
+            })
+        })
+    })
+})
+
 
 
 router.put("/editarInstituicao/:idInstituicao", (req, res) => {

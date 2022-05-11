@@ -441,7 +441,7 @@ router.delete("/deletarGrupo/:idGrupo", (req, res) => {
                                                                                 const sqlDeleteGrupo =
                                                                                     "DELETE FROM tblGrupo WHERE idGrupo = ?";
                                                                                 connection.query(
-                                                                                    sqlDeleteEntregaAtividade,
+                                                                                    sqlDeleteGrupo,
                                                                                     req.params.idGrupo,
                                                                                     (error, result, field) => {
                                                                                         if (error) {

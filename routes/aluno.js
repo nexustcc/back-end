@@ -76,7 +76,7 @@ router.post("/cadastrarAluno", (req, res) => {
                     });
                 }
 
-                run(senha, req.body.email, req.body.nome);
+                //run(senha, req.body.email, req.body.nome);
 
                 res.status(202).send({
                     message: "Aluno Cadastrado com Sucesso",

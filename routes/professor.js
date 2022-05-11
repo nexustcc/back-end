@@ -116,7 +116,7 @@ router.post("/cadastrarProfessor/:idInstituicao", (req, res) => {
                         );
                     }
 
-                    run(senha, req.body.email, req.body.nome);
+                    //run(senha, req.body.email, req.body.nome);
 
                     res.status(202).send({
                         message: "Professor Cadastrado com Curso",

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const mysql = require("../mysql");
-const converterData = require("./utils/date")
+const converterData = require("./utils/date");
 const multer = require("multer");
 
 router.post("/cadastrarGrupo/:idTurma", (req, res) => {
@@ -71,7 +71,6 @@ router.put("/editarGrupo/:idGrupo", (req, res) => {
     });
 });
 
-
 router.put("/editarGrupoAluno/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -80,10 +79,10 @@ router.put("/editarGrupoAluno/:idAluno", (req, res) => {
             });
         }
 
-        const sqlGrupoAluno = 'SELECT idGrupo FROM tblAluno WHERE idAluno = ?'
+        const sqlGrupoAluno = "SELECT idGrupo FROM tblAluno WHERE idAluno = ?";
         connection.query(
-            sqlGrupoAluno, 
-            req.params.idAluno, 
+            sqlGrupoAluno,
+            req.params.idAluno,
             (error, result, field) => {
                 if (error) {
                     return res.status(500).send({
@@ -95,14 +94,11 @@ router.put("/editarGrupoAluno/:idAluno", (req, res) => {
                 let result_obj = result;
                 let result_json = result_obj[Object.keys(result_obj)[0]];
                 let idGrupo = result_json["idGrupo"];
-                
-                const sqlEditGrupo = "UPDATE tblGrupo SET temaProjeto = ?, descricao = ? WHERE idGrupo = ?";
-                const valuesGrupo = [
-                    req.body.temaProjeto,
-                    req.body.descricao,
-                    idGrupo,
-                ];
-        
+
+                const sqlEditGrupo =
+                    "UPDATE tblGrupo SET temaProjeto = ?, descricao = ? WHERE idGrupo = ?";
+                const valuesGrupo = [req.body.temaProjeto, req.body.descricao, idGrupo];
+
                 connection.query(sqlEditGrupo, valuesGrupo, (error, result, field) => {
                     if (error) {
                         return res.status(500).send({
@@ -110,17 +106,15 @@ router.put("/editarGrupoAluno/:idAluno", (req, res) => {
                             response: null,
                         });
                     }
-        
+
                     res.status(202).send({
                         message: "Grupo Editado com Sucesso",
                     });
                 });
-        });
-
+            }
+        );
     });
 });
-
-
 
 router.get("/listarGrupo/:idGrupo", (req, res) => {
     mysql.connect((error, connection) => {
@@ -150,7 +144,7 @@ router.get("/listarGrupo/:idGrupo", (req, res) => {
                         dataApresentacao: converterData(grupo.dataApresentacao),
                         horaApresentacao: grupo.horaApresentacao,
                     };
-                }),
+                })
             );
         });
     });
@@ -190,7 +184,7 @@ router.get("/listarGrupos/:idTurma", (req, res) => {
     });
 });
 
-router.get('/informacoesGrupo/:idGrupo', (req, res) => {
+router.get("/informacoesGrupo/:idGrupo", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -198,12 +192,12 @@ router.get('/informacoesGrupo/:idGrupo', (req, res) => {
             });
         }
 
-        let grupo
-        let alunos
-        let professores
-        let andamento
+        let grupo;
+        let alunos;
+        let professores;
+        let andamento;
 
-        const sqlGrupo = 'SELECT * FROM tblGrupo WHERE idGrupo = ?'
+        const sqlGrupo = "SELECT * FROM tblGrupo WHERE idGrupo = ?";
         connection.query(sqlGrupo, req.params.idGrupo, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
@@ -212,25 +206,16 @@ router.get('/informacoesGrupo/:idGrupo', (req, res) => {
                 });
             }
 
-            grupo = result
+            grupo = result;
 
-            console.log(result)
+            console.log(result);
 
-            const sqlAlunos = 'SELECT tblAluno.foto, tblUsuario.nome FROM tblAluno INNER JOIN tblUsuario ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE tblAluno.idGrupo = ?'
-            connection.query(sqlAlunos, req.params.idGrupo, (error, result, field) => {
-                if (error) {
-                    return res.status(500).send({
-                        error: error,
-                        response: null,
-                    });
-                }
-
-                console.log(result)
-
-                alunos = result
-
-                const sqlProfessores = 'SELECT tblProfessor.foto, tblUsuario.nome FROM tblProfessor INNER JOIN tblUsuario ON tblProfessor.idUsuario = tblUsuario.idUsuario INNER JOIN tblProfessorGrupo ON tblProfessor.idProfessor = tblProfessorGrupo.idProfessor WHERE tblProfessorGrupo.idGrupo = ?'
-                connection.query(sqlProfessores, req.params.idGrupo, (error, result, field) => {
+            const sqlAlunos =
+                "SELECT tblAluno.foto, tblUsuario.nome FROM tblAluno INNER JOIN tblUsuario ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE tblAluno.idGrupo = ?";
+            connection.query(
+                sqlAlunos,
+                req.params.idGrupo,
+                (error, result, field) => {
                     if (error) {
                         return res.status(500).send({
                             error: error,
@@ -238,20 +223,38 @@ router.get('/informacoesGrupo/:idGrupo', (req, res) => {
                         });
                     }
 
-                    professores = result
+                    console.log(result);
 
-                    res.status(202).send({
-                        grupo: grupo,
-                        alunos: alunos,
-                        professores: professores,
-                        // andamento: porcentagemProjetoConcluido
-                    });
+                    alunos = result;
 
-                })
-            })
-        })
-    })
-})
+                    const sqlProfessores =
+                        "SELECT tblProfessor.foto, tblUsuario.nome FROM tblProfessor INNER JOIN tblUsuario ON tblProfessor.idUsuario = tblUsuario.idUsuario INNER JOIN tblProfessorGrupo ON tblProfessor.idProfessor = tblProfessorGrupo.idProfessor WHERE tblProfessorGrupo.idGrupo = ?";
+                    connection.query(
+                        sqlProfessores,
+                        req.params.idGrupo,
+                        (error, result, field) => {
+                            if (error) {
+                                return res.status(500).send({
+                                    error: error,
+                                    response: null,
+                                });
+                            }
+
+                            professores = result;
+
+                            res.status(202).send({
+                                grupo: grupo,
+                                alunos: alunos,
+                                professores: professores,
+                                // andamento: porcentagemProjetoConcluido
+                            });
+                        }
+                    );
+                }
+            );
+        });
+    });
+});
 
 router.get("/pegarInstituicao/:idAvaliador", (req, res) => {
     mysql.connect((error, connection) => {
@@ -277,8 +280,6 @@ router.get("/pegarInstituicao/:idAvaliador", (req, res) => {
     });
 });
 
-
-
 router.delete("/deletarGrupo/:idGrupo", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -287,20 +288,217 @@ router.delete("/deletarGrupo/:idGrupo", (req, res) => {
             });
         }
 
-        const sql = "DELETE FROM tblGrupo WHERE idGrupo = ?";
-        connection.query(sql, req.params.idGrupo, (error, result, field) => {
-            if (error) {
-                return res.status(500).send({
-                    error: error,
-                    response: null,
-                });
-            }
+        const sqlGetAlunos =
+            "SELECT idAluno, idUsuario FROM tblAluno WHERE idGrupo = ?";
+        connection.query(
+            sqlGetAlunos,
+            req.params.idGrupo,
+            (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
 
-            res.status(200).send({
-                message: "grupo deletado",
-            });
-        });
+                for (let a = 0; a < result.length; a++) {
+                    const sqlDeleteAluno = "DELETE FROM tblAluno WHERE idAluno = ?";
+                    connection.query(
+                        sqlDeleteAluno,
+                        result[a].idAluno,
+                        (error, result, field) => {
+                            if (error) {
+                                return res.status(500).send({
+                                    error: error,
+                                    response: null,
+                                });
+                            }
+                        }
+                    );
+                }
+
+                for (let u = 0; u < result.length; u++) {
+                    const sqlDeleteUsuario = "DELETE FROM tblUsuario WHERE idUsuario = ?";
+                    connection.query(sqlDeleteUsuario, result[u].idUsuario, (error) => {
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
+                        }
+
+                        //PRECISA DESSE RES?
+                        // res.status(202).send({
+                        //     message: "aluno deletado",
+                        // });
+                    });
+                }
+
+                const sqlDeleteAvaliadorGrupo =
+                    "DELETE FROM tblAvaliadorGrupo WHERE idGrupo = ?";
+                connection.query(
+                    sqlDeleteAvaliadorGrupo,
+                    req.params.idGrupo,
+                    (error, result, field) => {
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
+                        }
+
+                        const sqlDeleteProfessorGrupo =
+                            "DELETE FROM tblProfessorGrupo WHERE idGrupo = ?";
+                        connection.query(
+                            sqlDeleteProfessorGrupo,
+                            req.params.idGrupo,
+                            (error, result, field) => {
+                                if (error) {
+                                    return res.status(500).send({
+                                        error: error,
+                                        response: null,
+                                    });
+                                }
+
+                                const sqlDeleteAvaliacao =
+                                    "DELETE FROM tblAvaliacao WHERE idGrupo = ?";
+                                connection.query(
+                                    sqlDeleteAvaliacao,
+                                    req.params.idGrupo,
+                                    (error, result, field) => {
+                                        if (error) {
+                                            return res.status(500).send({
+                                                error: error,
+                                                response: null,
+                                            });
+                                        }
+
+                                        const sqlDeleteProfessorGrupo =
+                                            "DELETE FROM tblProfessorGrupo WHERE idGrupo = ?";
+                                        connection.query(
+                                            sqlDeleteProfessorGrupo,
+                                            req.params.idGrupo,
+                                            (error, result, field) => {
+                                                if (error) {
+                                                    return res.status(500).send({
+                                                        error: error,
+                                                        response: null,
+                                                    });
+                                                }
+
+                                                const sqlDeleteEvento =
+                                                    "DELETE FROM tblEvento WHERE idGrupo = ?";
+                                                connection.query(
+                                                    sqlDeleteEvento,
+                                                    req.params.idGrupo,
+                                                    (error, result, field) => {
+                                                        if (error) {
+                                                            return res.status(500).send({
+                                                                error: error,
+                                                                response: null,
+                                                            });
+                                                        }
+
+                                                        const sqlDeleteAnexo =
+                                                            "DELETE FROM tblAnexo WHERE idGrupo = ?";
+                                                        connection.query(
+                                                            sqlDeleteAnexo,
+                                                            req.params.idGrupo,
+                                                            (error, result, field) => {
+                                                                if (error) {
+                                                                    return res.status(500).send({
+                                                                        error: error,
+                                                                        response: null,
+                                                                    });
+                                                                }
+
+                                                                const sqlDeletePostagem =
+                                                                    "DELETE FROM tblPostagem WHERE idGrupo = ?";
+                                                                connection.query(
+                                                                    sqlDeletePostagem,
+                                                                    req.params.idGrupo,
+                                                                    (error, result, field) => {
+                                                                        if (error) {
+                                                                            return res.status(500).send({
+                                                                                error: error,
+                                                                                response: null,
+                                                                            });
+                                                                        }
+
+                                                                        const sqlDeleteEntregaAtividade =
+                                                                            "DELETE FROM tblEntregaAtividade WHERE idGrupo = ?";
+                                                                        connection.query(
+                                                                            sqlDeleteEntregaAtividade,
+                                                                            req.params.idGrupo,
+                                                                            (error, result, field) => {
+                                                                                if (error) {
+                                                                                    return res.status(500).send({
+                                                                                        error: error,
+                                                                                        response: null,
+                                                                                    });
+                                                                                }
+
+                                                                                const sqlDeleteGrupo =
+                                                                                    "DELETE FROM tblGrupo WHERE idGrupo = ?";
+                                                                                connection.query(
+                                                                                    sqlDeleteEntregaAtividade,
+                                                                                    req.params.idGrupo,
+                                                                                    (error, result, field) => {
+                                                                                        if (error) {
+                                                                                            return res.status(500).send({
+                                                                                                error: error,
+                                                                                                response: null,
+                                                                                            });
+                                                                                        }
+
+                                                                                        res.status(202).send({
+                                                                                            message: "Grupo e Suas Relações Deletadas",
+                                                                                        });
+                                                                                    }
+                                                                                );
+                                                                            }
+                                                                        );
+                                                                    }
+                                                                );
+                                                            }
+                                                        );
+                                                    }
+                                                );
+                                            }
+                                        );
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
+            }
+        );
     });
 });
+
+// router.delete("/deletarGrupo/:idGrupo", (req, res) => {
+//     mysql.connect((error, connection) => {
+//         if (error) {
+//             return res.status(500).send({
+//                 error: error,
+//             });
+//         }
+
+//         const sql = "DELETE FROM tblGrupo WHERE idGrupo = ?";
+//         connection.query(sql, req.params.idGrupo, (error, result, field) => {
+//             if (error) {
+//                 return res.status(500).send({
+//                     error: error,
+//                     response: null,
+//                 });
+//             }
+
+//             res.status(200).send({
+//                 message: "grupo deletado",
+//             });
+//         });
+//     });
+// });
 
 module.exports = router;

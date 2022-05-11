@@ -754,4 +754,62 @@ router.delete("/deletarProfessor/:idProfessor", (req, res) => {
     });
 });
 
+
+
+
+
+router.get('/listarMembros/:idProfessor', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let alunos = []
+        let avaliadores = []
+
+        const sqlAlunos = 'SELECT tblusuario.nome FROM tblusuario INNER JOIN tblaluno ON tblaluno.idUsuario = tblusuario.idUsuario INNER JOIN tblturma ON tblturma.idTurma = tblaluno.idTurma INNER JOIN tblTurmaProfessor ON tblTurmaProfessor.idTurma = tblTurma.idTurma WHERE tblTurmaProfessor.idprofessor = ? ORDER BY tblUsuario.nome'
+        connection.query(sqlAlunos, req.params.idProfessor, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            for (let a = 0; a < result.length; a++) {
+                alunos.push(result[a].nome)
+            }
+
+            const sqlAvaliadores = 'SELECT tblUsuario.nome FROM tblUsuario INNER JOIN tblAvaliador ON tblAvaliador.idUsuario = tblUsuario.idUsuario INNER JOIN tblAvaliadorGrupo ON tblAvaliadorGrupo.idAvaliador = tblAvaliador.idAvaliador INNER JOIN tblgrupo ON tblgrupo.idGrupo = tblAvaliadorGrupo.idGrupo INNER JOIN tblProfessorGrupo ON tblProfessorGrupo.idGrupo = tblGrupo.idGrupo WHERE tblProfessorGrupo.idProfessor = ? ORDER BY tblUsuario.nome'
+            connection.query(sqlAvaliadores, req.params.idProfessor, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+
+                for (let a = 0; a < result.length; a++) {
+                    if(avaliadores.length === 0){
+                        avaliadores.push(result[a].nome)
+                    } else{
+                        if(result[a].nome != result[0].nome){
+                            avaliadores.push(result[a].nome)
+                            break;
+                        }
+                    }
+                }
+
+                res.status(202).send({
+                    alunos: alunos,
+                    avaliadores: avaliadores
+                });
+            })
+        })
+    })
+})
+
+
 module.exports = router;

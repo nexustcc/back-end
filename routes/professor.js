@@ -68,7 +68,11 @@ router.post("/cadastrarProfessor/:idInstituicao", (req, res) => {
 
             const sqlProfessor =
                 "INSERT INTO tblProfessor (foto, idInstituicao, idUsuario) VALUES (?, ?, ?)";
-            const valuesProfessor = ["uploads/fotopadrao.svg", req.params.idInstituicao, idUsuario];
+            const valuesProfessor = [
+                "uploads/fotopadrao.svg",
+                req.params.idInstituicao,
+                idUsuario,
+            ];
             connection.query(
                 sqlProfessor,
                 valuesProfessor,
@@ -155,6 +159,37 @@ router.get("/listarProfessor/:idProfessor", (req, res) => {
                             email: professor.email,
                             senha: professor.senha,
                         },
+                    };
+                }),
+            });
+        });
+    });
+});
+
+router.get("/listarProfessorTurma/:idTurma", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql =
+            "SELECT * FROM tblUsuario INNER JOIN tblProfessor ON tblUsuario.idUsuario = tblProfessor.idUsuario INNER JOIN tblTurmaProfessor ON tblTurmaProfessor.idProfessor = tblTurmaProfessor.idTurma WHERE idTurma = ?";
+
+        connection.query(sql, req.params.idTurma, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(200).send({
+                professores: result.map((professor) => {
+                    return {
+                        idProfessor: professor.idProfessor,
+                        nome: professor.nome,
                     };
                 }),
             });
@@ -556,88 +591,93 @@ router.put(
     }
 );
 
-router.put("/editarProfessor/:idProfessor", upload.single("foto"), (req, res) => {
-    console.log(req.body);
-    console.log(req.file);
+router.put(
+    "/editarProfessor/:idProfessor",
+    upload.single("foto"),
+    (req, res) => {
+        console.log(req.body);
+        console.log(req.file);
 
-    mysql.connect((error, connection) => {
-        if (error) {
-            return res.status(500).send({
-                error: error,
-            });
-        }
+        mysql.connect((error, connection) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                });
+            }
 
-        let idUsuario;
+            let idUsuario;
 
-        const sqlGetIdUsuario = "SELECT idUsuario FROM tblProfessor WHERE idProfessor= ?";
-        const valuesGetIdUsuario = [req.params.idProfessor];
+            const sqlGetIdUsuario =
+                "SELECT idUsuario FROM tblProfessor WHERE idProfessor= ?";
+            const valuesGetIdUsuario = [req.params.idProfessor];
 
-        connection.query(
-            sqlGetIdUsuario,
-            valuesGetIdUsuario,
-            (error, result, field) => {
-                if (error) {
-                    return res.status(500).send({
-                        error: error,
-                        response: null,
-                    });
-                }
-                let result_obj = result;
-                let result_json = result_obj[Object.keys(result_obj)[0]];
-                idUsuario = result_json["idUsuario"];
+            connection.query(
+                sqlGetIdUsuario,
+                valuesGetIdUsuario,
+                (error, result, field) => {
+                    if (error) {
+                        return res.status(500).send({
+                            error: error,
+                            response: null,
+                        });
+                    }
+                    let result_obj = result;
+                    let result_json = result_obj[Object.keys(result_obj)[0]];
+                    idUsuario = result_json["idUsuario"];
 
-                const sqlEditUsuario =
-                    "UPDATE tblUsuario SET email = ?, nome = ?, senha = ? WHERE idUsuario = ?";
-                const valuesUsuario = [
-                    req.body.email,
-                    req.body.nome,
-                    req.body.senha,
-                    idUsuario,
-                ];
-                connection.query(
-                    sqlEditUsuario,
-                    valuesUsuario,
-                    (error, result, field) => {
-                        if (error) {
-                            return res.status(500).send({
-                                error: error,
-                                response: null,
-                            });
-                        }
-
-                        let foto;
-
-                        if (req.file == undefined) {
-                            foto = "uploads/fotopadrao.svg";
-                        } else {
-                            foto = req.file.path;
-                        }
-
-                        const sqlEditProfessor =
-                            "UPDATE tblProfessor SET foto = ? WHERE idProfessor = ?";
-                        const valuesEditProfessor = [foto, req.params.idProfessor];
-                        mysql.query(
-                            sqlEditProfessor,
-                            valuesEditProfessor,
-                            (error, result, field) => {
-                                if (error) {
-                                    return res.status(500).send({
-                                        error: error,
-                                        response: null,
-                                    });
-                                }
-
-                                res.status(201).send({
-                                    message: "professor editado",
+                    const sqlEditUsuario =
+                        "UPDATE tblUsuario SET email = ?, nome = ?, senha = ? WHERE idUsuario = ?";
+                    const valuesUsuario = [
+                        req.body.email,
+                        req.body.nome,
+                        req.body.senha,
+                        idUsuario,
+                    ];
+                    connection.query(
+                        sqlEditUsuario,
+                        valuesUsuario,
+                        (error, result, field) => {
+                            if (error) {
+                                return res.status(500).send({
+                                    error: error,
+                                    response: null,
                                 });
                             }
-                        );
-                    }
-                );
-            }
-        );
-    });
-});
+
+                            let foto;
+
+                            if (req.file == undefined) {
+                                foto = "uploads/fotopadrao.svg";
+                            } else {
+                                foto = req.file.path;
+                            }
+
+                            const sqlEditProfessor =
+                                "UPDATE tblProfessor SET foto = ? WHERE idProfessor = ?";
+                            const valuesEditProfessor = [foto, req.params.idProfessor];
+                            mysql.query(
+                                sqlEditProfessor,
+                                valuesEditProfessor,
+                                (error, result, field) => {
+                                    if (error) {
+                                        return res.status(500).send({
+                                            error: error,
+                                            response: null,
+                                        });
+                                    }
+
+                                    res.status(201).send({
+                                        message: "professor editado",
+                                    });
+                                }
+                            );
+                        }
+                    );
+                }
+            );
+        });
+    }
+);
 
 router.get("/pegarInstituicao/:idProfessor", (req, res) => {
     mysql.connect((error, connection) => {
@@ -754,11 +794,7 @@ router.delete("/deletarProfessor/:idProfessor", (req, res) => {
     });
 });
 
-
-
-
-
-router.get('/listarMembros/:idProfessor', (req, res) => {
+router.get("/listarMembros/:idProfessor", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -766,24 +802,15 @@ router.get('/listarMembros/:idProfessor', (req, res) => {
             });
         }
 
-        let alunos = []
-        let avaliadores = []
+        let alunos = [];
+        let avaliadores = [];
 
-        const sqlAlunos = 'SELECT tblusuario.nome FROM tblusuario INNER JOIN tblaluno ON tblaluno.idUsuario = tblusuario.idUsuario INNER JOIN tblturma ON tblturma.idTurma = tblaluno.idTurma INNER JOIN tblTurmaProfessor ON tblTurmaProfessor.idTurma = tblTurma.idTurma WHERE tblTurmaProfessor.idprofessor = ? ORDER BY tblUsuario.nome'
-        connection.query(sqlAlunos, req.params.idProfessor, (error, result, field) => {
-            if (error) {
-                return res.status(500).send({
-                    error: error,
-                    response: null,
-                });
-            }
-
-            for (let a = 0; a < result.length; a++) {
-                alunos.push(result[a].nome)
-            }
-
-            const sqlAvaliadores = 'SELECT tblUsuario.nome FROM tblUsuario INNER JOIN tblAvaliador ON tblAvaliador.idUsuario = tblUsuario.idUsuario INNER JOIN tblAvaliadorGrupo ON tblAvaliadorGrupo.idAvaliador = tblAvaliador.idAvaliador INNER JOIN tblgrupo ON tblgrupo.idGrupo = tblAvaliadorGrupo.idGrupo INNER JOIN tblProfessorGrupo ON tblProfessorGrupo.idGrupo = tblGrupo.idGrupo WHERE tblProfessorGrupo.idProfessor = ? ORDER BY tblUsuario.nome'
-            connection.query(sqlAvaliadores, req.params.idProfessor, (error, result, field) => {
+        const sqlAlunos =
+            "SELECT tblusuario.nome FROM tblusuario INNER JOIN tblaluno ON tblaluno.idUsuario = tblusuario.idUsuario INNER JOIN tblturma ON tblturma.idTurma = tblaluno.idTurma INNER JOIN tblTurmaProfessor ON tblTurmaProfessor.idTurma = tblTurma.idTurma WHERE tblTurmaProfessor.idprofessor = ? ORDER BY tblUsuario.nome";
+        connection.query(
+            sqlAlunos,
+            req.params.idProfessor,
+            (error, result, field) => {
                 if (error) {
                     return res.status(500).send({
                         error: error,
@@ -792,24 +819,42 @@ router.get('/listarMembros/:idProfessor', (req, res) => {
                 }
 
                 for (let a = 0; a < result.length; a++) {
-                    if(avaliadores.length === 0){
-                        avaliadores.push(result[a].nome)
-                    } else{
-                        if(result[a].nome != result[0].nome){
-                            avaliadores.push(result[a].nome)
-                            break;
-                        }
-                    }
+                    alunos.push(result[a].nome);
                 }
 
-                res.status(202).send({
-                    alunos: alunos,
-                    avaliadores: avaliadores
-                });
-            })
-        })
-    })
-})
+                const sqlAvaliadores =
+                    "SELECT tblUsuario.nome FROM tblUsuario INNER JOIN tblAvaliador ON tblAvaliador.idUsuario = tblUsuario.idUsuario INNER JOIN tblAvaliadorGrupo ON tblAvaliadorGrupo.idAvaliador = tblAvaliador.idAvaliador INNER JOIN tblgrupo ON tblgrupo.idGrupo = tblAvaliadorGrupo.idGrupo INNER JOIN tblProfessorGrupo ON tblProfessorGrupo.idGrupo = tblGrupo.idGrupo WHERE tblProfessorGrupo.idProfessor = ? ORDER BY tblUsuario.nome";
+                connection.query(
+                    sqlAvaliadores,
+                    req.params.idProfessor,
+                    (error, result, field) => {
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
+                        }
 
+                        for (let a = 0; a < result.length; a++) {
+                            if (avaliadores.length === 0) {
+                                avaliadores.push(result[a].nome);
+                            } else {
+                                if (result[a].nome != result[0].nome) {
+                                    avaliadores.push(result[a].nome);
+                                    break;
+                                }
+                            }
+                        }
+
+                        res.status(202).send({
+                            alunos: alunos,
+                            avaliadores: avaliadores,
+                        });
+                    }
+                );
+            }
+        );
+    });
+});
 
 module.exports = router;

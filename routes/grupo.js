@@ -28,12 +28,65 @@ router.post("/cadastrarGrupo/:idTurma", (req, res) => {
                 });
             }
 
+            idGrupo = result.insertId;
+
+            idProfessores = req.body.idProfessores;
+
+            let sqlGrupos =
+                "INSERT INTO tblProfessorGrupo (idGrupo, idProfessor) VALUES (?, ?)";
+
+            for (let p = 0; p < idProfessores.length; p++) {
+                connection.query(
+                    sqlGrupos,
+                    [idGrupo, idProfessores[p]],
+                    (error, result, field) => {
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
+                        }
+                    }
+                );
+            }
+
             res.status(202).send({
-                message: "Grupo Cadastrado com Sucesso",
+                message: "Grupo Cadastrado",
             });
         });
     });
 });
+
+// router.post("/cadastrarGrupo/:idTurma", (req, res) => {
+//     mysql.connect((error, connection) => {
+//         if (error) {
+//             return res.status(500).send({
+//                 error: error,
+//             });
+//         }
+
+//         const sqlGrupo =
+//     "INSERT INTO tblGrupo (numeracao, nomeGrupo,idTurma) VALUES (?, ?, ?)";
+// const valuesGrupo = [
+//     req.body.numeracao,
+//     req.body.nomeGrupo,
+//     req.params.idTurma,
+// ];
+
+//         connection.query(sqlGrupo, valuesGrupo, (error, result, field) => {
+//             if (error) {
+//                 return res.status(500).send({
+//                     error: error,
+//                     response: null,
+//                 });
+//             }
+
+//             res.status(202).send({
+//                 message: "Grupo Cadastrado com Sucesso",
+//             });
+//         });
+//     });
+// });
 
 router.put("/editarGrupo/:idGrupo", (req, res) => {
     mysql.connect((error, connection) => {

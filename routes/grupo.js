@@ -29,8 +29,10 @@ router.post("/cadastrarGrupo/:idTurma", (req, res) => {
             }
 
             idGrupo = result.insertId;
+            console.log ("idGrupo: " + idGrupo);
 
             idProfessores = req.body.idProfessores;
+            console.log ("idProfessores: " + idProfessores);
 
             let sqlGrupos =
                 "INSERT INTO tblProfessorGrupo (idGrupo, idProfessor) VALUES (?, ?)";
@@ -38,16 +40,18 @@ router.post("/cadastrarGrupo/:idTurma", (req, res) => {
             for (let p = 0; p < idProfessores.length; p++) {
                 connection.query(
                     sqlGrupos,
-                    [idGrupo, idProfessores[p]],
-                    (error, result, field) => {
-                        if (error) {
-                            return res.status(500).send({
-                                error: error,
-                                response: null,
-                            });
-                        }
-                    }
+                    [idGrupo, idProfessores[p]]
+                    //(error, result, field) => {
+                        // if (error) {
+                        //     return res.status(500).send({
+                        //         error: error,
+                        //         response: null,
+                        //     });
+                        // }
+                    //}
                 );
+
+                console.log(idProfessores[p]);
             }
 
             res.status(202).send({

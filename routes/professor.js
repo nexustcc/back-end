@@ -175,7 +175,7 @@ router.get("/listarProfessorTurma/:idTurma", (req, res) => {
         }
 
         const sql =
-            "SELECT * FROM tblUsuario INNER JOIN tblProfessor ON tblUsuario.idUsuario = tblProfessor.idUsuario INNER JOIN tblTurmaProfessor ON tblTurmaProfessor.idProfessor = tblTurmaProfessor.idTurma WHERE idTurma = ?";
+            "SELECT tblProfessor.idProfessor, tblUsuario.nome FROM tblUsuario INNER JOIN tblProfessor ON tblUsuario.idUsuario = tblProfessor.idUsuario INNER JOIN tblTurmaProfessor ON tblTurmaProfessor.idProfessor = tblTurmaProfessor.idTurma WHERE idTurma = ?";
 
         connection.query(sql, req.params.idTurma, (error, result, field) => {
             if (error) {

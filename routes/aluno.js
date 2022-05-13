@@ -322,7 +322,12 @@ router.get('/informacoesGrupo/:idAluno', (req, res) => {
                                             }
                                         }
 
-                                        let porcentagemProjetoConcluido = (100 * concluidas.length) / total.length
+                                        let porcentagemProjetoConcluido
+                                        
+                                        if(total.length == 0) porcentagemProjetoConcluido = 0
+                                        else{
+                                            porcentagemProjetoConcluido = (100 * concluidas.length) / total.length
+                                        }
 
                                         res.status(202).send({
                                             grupo: grupo,

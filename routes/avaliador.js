@@ -325,111 +325,41 @@ router.delete("/deletarAvaliador/:idAvaliador", (req, res) => {
             });
         }
 
-        const sqlAvalidorGrupos =
-            "DELETE FROM tblAvaliadorGrupo WHERE idAvaliador = ?";
-        connection.query(
-            sqlAvalidorGrupos,
-            req.params.idAvaliador,
-            (error, result, field) => {
-                if (error) {
-                    return res.status(500).send({
-                        error: error,
-                        response: null,
-                    });
-                }
+        let idUsuario;
+        let idAvaliador = req.params.idAvaliador
 
-                const sqlIdAvaliador =
-                    "SELECT idGrupo FROM tblAvaliadorGrupo WHERE idAvaliador = ?";
-                connection.query(
-                    sqlIdAvaliador,
-                    req.params.idAvaliador,
-                    (error, result, field) => {
-                        if (error) {
-                            return res.status(500).send({
-                                error: error,
-                                response: null,
-                            });
-                        }
+        const sqlAvaliadorGrupo = 'DELETE FROM tblAvaliadorGrupo WHERE idAvaliador = ?'
+        connection.query(sqlAvaliadorGrupo, idAvaliador, (error, result) => {
+            if (error) { return res.status(500).send({ error: error, response: null }) }
 
-                        let grupos = [];
+            const sqlAvaliacao = 'DELETE FROM tblAvaliacao WHERE idAvaliador = ?'
+            connection.query(sqlAvaliacao, idAvaliador, (error, result) => {
+                if (error) { return res.status(500).send({ error: error, response: null }) }
 
-                        for (let g = 0; g < result.length; g++) {
-                            grupos.push(result[g].idGrupo);
-                        }
+                const sqlIdUsuario = 'SELECT tblUsuario.idUsuario FROM tblUsuario INNER JOIN tblAvaliador ON tblAvaliador.idUsuario = tblUsuario.idUsuario WHERE tblAvaliador.idAvaliador = ?'
+                connection.query(sqlIdUsuario, idAvaliador, (error, result) => {
+                    if (error) { return res.status(500).send({ error: error, response: null }) }
+                                        
+                    let result_obj = result;
+                    let result_json = result_obj[Object.keys(result_obj)[0]];
+                    idUsuario = result_json["idUsuario"];
 
-                        const sqlDeletarGrupos =
-                            "DELETE FROM tblAvaliadorGrupo WHERE idAvaliador = ? AND idGrupo = ?";
-                        for (let g = 0; g < grupos.length; g++) {
-                            connection.query(
-                                sqlDeletarGrupos,
-                                [req.params.idAvaliador, grupos[g]],
-                                (error, result, field) => {
-                                    if (error) {
-                                        return res.status(500).send({
-                                            error: error,
-                                            response: null,
-                                        });
-                                    }
-                                }
+                    const sqlAvaliador = 'DELETE FROM tblAvaliador WHERE idAvaliador = ?'
+                    connection.query(sqlAvaliador, idAvaliador, (error, result) => {
+                        if (error) { return res.status(500).send({ error: error, response: null }) }
+
+                        const sqlUsuario = 'DELETE FROM tblUsuario WHERE idUsuario = ?'
+                        connection.query(sqlUsuario, idUsuario, (error, result) => {
+                            if (error) { return res.status(500).send({ error: error, response: null }) }
+                                                   
+                            res.status(202).send(
+                                'Avaliador Deletado'
                             );
-                        }
-
-                        connection.query(
-                            "SELECT idUsuario FROM tblAvaliador WHERE idAvaliador = ?",
-                            req.params.idAvaliador,
-                            (error, result, field) => {
-                                if (error) {
-                                    return res.status(500).send({
-                                        error: error,
-                                        response: null,
-                                    });
-                                }
-
-                                let idUsuario;
-
-                                let result_obj = result;
-                                let result_json = result_obj[Object.keys(result_obj)[0]];
-                                idUsuario = result_json["idUsuario"];
-
-                                const sqlAvaliador =
-                                    "DELETE FROM tblAvaliador WHERE idAvaliador = ?";
-                                connection.query(
-                                    sqlAvaliador,
-                                    req.params.idAvaliador,
-                                    (error, result, field) => {
-                                        if (error) {
-                                            return res.status(500).send({
-                                                error: error,
-                                                response: null,
-                                            });
-                                        }
-
-                                        const sqlExcluirUsuario =
-                                            "DELETE FROM tblUsuario WHERE idUsuario = ?";
-                                        connection.query(
-                                            sqlExcluirUsuario,
-                                            idUsuario,
-                                            (error, result, field) => {
-                                                if (error) {
-                                                    return res.status(500).send({
-                                                        error: error,
-                                                        response: null,
-                                                    });
-                                                }
-
-                                                res.status(200).send({
-                                                    message: "Avaliador deletado com sucesso",
-                                                });
-                                            }
-                                        );
-                                    }
-                                );
-                            }
-                        );
-                    }
-                );
-            }
-        );
+                        })     
+                    })
+                })
+            })
+        })
     });
 });
 

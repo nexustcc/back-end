@@ -355,54 +355,50 @@ router.delete("/deletarAluno/:idAluno", (req, res) => {
         }
 
         let idUsuario;
+        let idAluno = req.params.idAluno
 
-        const sqlGetAlunno = "SELECT * FROM tblAluno WHERE idAluno = ?";
-        connection.query(
-            sqlGetAlunno,
-            req.params.idAluno,
-            (error, result, field) => {
-                if (error) {
-                    return res.status(500).send({
-                        error: error,
-                        response: null,
-                    });
-                }
-                let result_obj = result;
-                let result_json = result_obj[Object.keys(result_obj)[0]];
-                idUsuario = result_json["idUsuario"];
+        const sqlAutor = 'DELETE FROM tblAutor WHERE idAluno = ?'
+        connection.query(sqlAutor, idAluno, (error, result) => {
+            if (error) { return res.status(500).send({ error: error, response: null }) }
 
-                console.log(idUsuario);
+            const sqlAtividade = 'DELETE FROM tblAtividade WHERE idAluno = ?'
+            connection.query(sqlAtividade, idAluno, (error, result) => {
+                if (error) { return res.status(500).send({ error: error, response: null }) }
 
-                const sqlDeleteAluno = "DELETE FROM tblAluno WHERE idAluno = ?";
-                connection.query(
-                    sqlDeleteAluno,
-                    req.params.idAluno,
-                    (error, result, field) => {
-                        if (error) {
-                            return res.status(500).send({
-                                error: error,
-                                response: null,
-                            });
-                        }
+                const sqlTarefa = 'DELETE FROM tblTarefa WHERE idAluno = ?'
+                connection.query(sqlTarefa, idAluno, (error, result) => {
+                    if (error) { return res.status(500).send({ error: error, response: null }) }
 
-                        const sqlDeleteUsuario =
-                            "DELETE FROM tblUsuario WHERE idUsuario = ?";
-                        connection.query(sqlDeleteUsuario, idUsuario, (error) => {
-                            if (error) {
-                                return res.status(500).send({
-                                    error: error,
-                                    response: null,
-                                });
-                            }
+                    const sqlTarefaAluno = 'DELETE FROM tblTarefaAluno WHERE idAluno = ?'
+                    connection.query(sqlTarefaAluno, idAluno, (error, result) => {
+                        if (error) { return res.status(500).send({ error: error, response: null }) }
 
-                            res.status(202).send({
-                                message: "aluno deletado",
-                            });
-                        });
-                    }
-                );
-            }
-        );
+                        const sqlIdUsuario = 'SELECT tblUsuario.idUsuario FROM tblUsuario INNER JOIN tblAluno ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE tblAluno.idAluno = ?'
+                        connection.query(sqlIdUsuario, idAluno, (error, result) => {
+                            if (error) { return res.status(500).send({ error: error, response: null }) }
+                                        
+                            let result_obj = result;
+                            let result_json = result_obj[Object.keys(result_obj)[0]];
+                            idUsuario = result_json["idUsuario"];
+
+                            const sqlAluno = 'DELETE FROM tblAluno WHERE idAluno = ?'
+                            connection.query(sqlAluno, idAluno, (error, result) => {
+                                if (error) { return res.status(500).send({ error: error, response: null }) }
+
+                                const sqlUsuario = 'DELETE FROM tblUsuario WHERE idUsuario = ?'
+                                connection.query(sqlUsuario, idUsuario, (error, result) => {
+                                    if (error) { return res.status(500).send({ error: error, response: null }) }
+                                                
+                                    res.status(202).send(
+                                        'Aluno Deletado'
+                                    );
+                                })     
+                            })
+                        })
+                    })
+                })
+            })
+        })
     });
 });
 

@@ -55,7 +55,7 @@ app.use("/grupo", rotaGrupo);
 app.use("/login", rotaLogin);
 app.use("/mobile", rotaMobile);
 app.use("/membros", rotaMembros);
-app.use("/taregas", rotaTarefas);
+app.use("/tarefas", rotaTarefas);
 
 app.use((req, res, next) => {
     const erro = new Error("Não encontrado!");

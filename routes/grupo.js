@@ -13,7 +13,7 @@ router.post("/cadastrarGrupo/:idTurma", (req, res) => {
         }
 
         const sqlGrupo =
-            "INSERT INTO tblGrupo (numeracao, nomeGrupo,idTurma) VALUES (?, ?, ?)";
+            "INSERT INTO tblGrupo (numeracao, nomeGrupo, idTurma) VALUES (?, ?, ?)";
         const valuesGrupo = [
             req.body.numeracao,
             req.body.nomeGrupo,

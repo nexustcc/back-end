@@ -652,9 +652,11 @@ router.put(
                                 foto = req.file.path;
                             }
 
+                            let fotoFormmat = foto.replace('\\', '/');
+
                             const sqlEditProfessor =
                                 "UPDATE tblProfessor SET foto = ? WHERE idProfessor = ?";
-                            const valuesEditProfessor = [foto, req.params.idProfessor];
+                            const valuesEditProfessor = [fotoFormmat, req.params.idProfessor];
                             mysql.query(
                                 sqlEditProfessor,
                                 valuesEditProfessor,

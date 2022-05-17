@@ -38,7 +38,6 @@ const upload = multer({
     fileFilter: fileFilter,
 });
 
-
 router.post("/cadastrarAluno", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -67,7 +66,12 @@ router.post("/cadastrarAluno", (req, res) => {
 
             const sqlAluno =
                 "INSERT INTO tblAluno (foto, idTurma, idUsuario, idGrupo) VALUES (?, ?, ?, ?)";
-            const valuesAluno = ["uploads/fotopadrao.svg", req.body.idTurma, idUsuario, req.body.idGrupo];
+            const valuesAluno = [
+                "uploads/fotopadrao.svg",
+                req.body.idTurma,
+                idUsuario,
+                req.body.idGrupo,
+            ];
             connection.query(sqlAluno, valuesAluno, (error, result, field) => {
                 if (error) {
                     return res.status(500).send({
@@ -85,7 +89,6 @@ router.post("/cadastrarAluno", (req, res) => {
         });
     });
 });
-
 
 router.put("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
     console.log(req.file);
@@ -117,10 +120,7 @@ router.put("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
 
                 const sqlEditUsuario =
                     "UPDATE tblUsuario SET senha = ? WHERE idUsuario = ?";
-                const valuesUsuario = [
-                    req.body.senha,
-                    idUsuario,
-                ];
+                const valuesUsuario = [req.body.senha, idUsuario];
                 connection.query(
                     sqlEditUsuario,
                     valuesUsuario,
@@ -140,9 +140,11 @@ router.put("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
                             foto = req.file.path;
                         }
 
+                        let fotoFormmat = foto.replace('\\', '/');
+
                         const sqlEditAluno =
                             "UPDATE tblAluno SET foto = ? WHERE idAluno = ?";
-                        const valuesEditAluno = [foto, req.params.idAluno];
+                        const valuesEditAluno = [fotoFormmat, req.params.idAluno];
                         mysql.query(
                             sqlEditAluno,
                             valuesEditAluno,
@@ -237,9 +239,7 @@ router.get("/listarAlunos/:idTurma", (req, res) => {
     });
 });
 
-
-
-router.get('/informacoesGrupo/:idAluno', (req, res) => {
+router.get("/informacoesGrupo/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -247,46 +247,59 @@ router.get('/informacoesGrupo/:idAluno', (req, res) => {
             });
         }
 
-        let grupo
-        let alunos = []
-        let professores = []
-        let andamento = []
+        let grupo;
+        let alunos = [];
+        let professores = [];
+        let andamento = [];
 
-        const sqlGrupo = 'SELECT * FROM tblGrupo INNER JOIN tblAluno ON tblGrupo.idGrupo = tblAluno.idGrupo WHERE idAluno = ?'
-        connection.query(
-            sqlGrupo,
-            req.params.idAluno,
-            (error, result, field) => {
-                grupo = result
+        const sqlGrupo =
+            "SELECT * FROM tblGrupo INNER JOIN tblAluno ON tblGrupo.idGrupo = tblAluno.idGrupo WHERE idAluno = ?";
+        connection.query(sqlGrupo, req.params.idAluno, (error, result, field) => {
+            grupo = result;
 
-                const sqlAlunos = 'SELECT idAluno FROM tblAluno WHERE idGrupo = ?'
+            const sqlAlunos = "SELECT idAluno FROM tblAluno WHERE idGrupo = ?";
+            connection.query(sqlAlunos, grupo[0].idGrupo, (error, result, field) => {
+                let idAlunos = [];
+
+                for (let a = 0; a < result.length; a++) {
+                    if (result[a].idAluno != req.params.idAluno) {
+                        idAlunos.push(result[a].idAluno);
+                    }
+                }
+
+                for (let a = 0; a < idAlunos.length; a++) {
+                    const sqlNomeAluno =
+                        "SELECT nome FROM tblUsuario INNER JOIN tblAluno ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE idAluno = ?";
+                    connection.query(
+                        sqlNomeAluno,
+                        idAlunos[a],
+                        (error, result, field) => {
+                            alunos.push(result[0].nome);
+                        }
+                    );
+                }
+
+                const sqlIdProfessores =
+                    "SELECT nome FROM tblUsuario INNER JOIN tblProfessor ON tblProfessor.idUsuario = tblUsuario.idUsuario INNER JOIN tblProfessorGrupo ON tblProfessorGrupo.idProfessor = tblProfessor.idProfessor WHERE idGrupo = ?";
                 connection.query(
-                    sqlAlunos,
+                    sqlIdProfessores,
                     grupo[0].idGrupo,
                     (error, result, field) => {
-
-                        let idAlunos = []
-
-                        for (let a = 0; a < result.length; a++) {
-                            if(result[a].idAluno != req.params.idAluno){
-                                idAlunos.push(result[a].idAluno)
-                            }
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
                         }
 
-                        for (let a = 0; a < idAlunos.length; a++) {
-                            const sqlNomeAluno = 'SELECT nome FROM tblUsuario INNER JOIN tblAluno ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE idAluno = ?'
-                            connection.query(
-                                sqlNomeAluno,
-                                idAlunos[a],
-                                (error, result, field) => {
-                                    alunos.push(result[0].nome)
-                                }
-                            )
+                        for (let p = 0; p < result.length; p++) {
+                            professores.push(result[p].nome);
                         }
 
-                        const sqlIdProfessores = 'SELECT nome FROM tblUsuario INNER JOIN tblProfessor ON tblProfessor.idUsuario = tblUsuario.idUsuario INNER JOIN tblProfessorGrupo ON tblProfessorGrupo.idProfessor = tblProfessor.idProfessor WHERE idGrupo = ?'
+                        const sqlAndamento =
+                            "SELECT * FROM tblTarefa INNER JOIN tblAluno ON tblAluno.idAluno = tblTarefa.idAluno WHERE idGrupo = ?";
                         connection.query(
-                            sqlIdProfessores,
+                            sqlAndamento,
                             grupo[0].idGrupo,
                             (error, result, field) => {
                                 if (error) {
@@ -296,55 +309,38 @@ router.get('/informacoesGrupo/:idAluno', (req, res) => {
                                     });
                                 }
 
-                                for (let p = 0; p < result.length; p++) {
-                                    professores.push(result[p].nome)
+                                let total = [];
+                                let concluidas = [];
+
+                                for (let t = 0; t < result.length; t++) {
+                                    total.push(result[t].idTarefa);
+                                    if (result[t].status == "Concluída") {
+                                        concluidas.push(result[t].status);
+                                    }
                                 }
 
-                                const sqlAndamento = 'SELECT * FROM tblTarefa INNER JOIN tblAluno ON tblAluno.idAluno = tblTarefa.idAluno WHERE idGrupo = ?'
-                                connection.query(
-                                    sqlAndamento,
-                                    grupo[0].idGrupo,
-                                    (error, result, field) => {
-                                        if (error) {
-                                            return res.status(500).send({
-                                                error: error,
-                                                response: null,
-                                            });
-                                        }
+                                let porcentagemProjetoConcluido;
 
-                                        let total = []
-                                        let concluidas = []
-                                        
-                                        for (let t = 0; t < result.length; t++) {
-                                            total.push(result[t].idTarefa)
-                                            if(result[t].status == 'Concluída'){
-                                                concluidas.push(result[t].status)
-                                            }
-                                        }
+                                if (total.length == 0) porcentagemProjetoConcluido = 0;
+                                else {
+                                    porcentagemProjetoConcluido =
+                                        (100 * concluidas.length) / total.length;
+                                }
 
-                                        let porcentagemProjetoConcluido
-                                        
-                                        if(total.length == 0) porcentagemProjetoConcluido = 0
-                                        else{
-                                            porcentagemProjetoConcluido = (100 * concluidas.length) / total.length
-                                        }
-
-                                        res.status(202).send({
-                                            grupo: grupo,
-                                            alunos: alunos,
-                                            professores: professores,
-                                            andamento: porcentagemProjetoConcluido
-                                        });
-
-                                    }
-                                )
-
-                            })
-                        })
-                    })
-            })
-})
-
+                                res.status(202).send({
+                                    grupo: grupo,
+                                    alunos: alunos,
+                                    professores: professores,
+                                    andamento: porcentagemProjetoConcluido,
+                                });
+                            }
+                        );
+                    }
+                );
+            });
+        });
+    });
+});
 
 router.delete("/deletarAluno/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {
@@ -355,50 +351,86 @@ router.delete("/deletarAluno/:idAluno", (req, res) => {
         }
 
         let idUsuario;
-        let idAluno = req.params.idAluno
+        let idAluno = req.params.idAluno;
 
-        const sqlAutor = 'DELETE FROM tblAutor WHERE idAluno = ?'
+        const sqlAutor = "DELETE FROM tblAutor WHERE idAluno = ?";
         connection.query(sqlAutor, idAluno, (error, result) => {
-            if (error) { return res.status(500).send({ error: error, response: null }) }
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null
+                });
+            }
 
-            const sqlAtividade = 'DELETE FROM tblAtividade WHERE idAluno = ?'
+            const sqlAtividade = "DELETE FROM tblAtividade WHERE idAluno = ?";
             connection.query(sqlAtividade, idAluno, (error, result) => {
-                if (error) { return res.status(500).send({ error: error, response: null }) }
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null
+                    });
+                }
 
-                const sqlTarefa = 'DELETE FROM tblTarefa WHERE idAluno = ?'
+                const sqlTarefa = "DELETE FROM tblTarefa WHERE idAluno = ?";
                 connection.query(sqlTarefa, idAluno, (error, result) => {
-                    if (error) { return res.status(500).send({ error: error, response: null }) }
+                    if (error) {
+                        return res.status(500).send({
+                            error: error,
+                            response: null
+                        });
+                    }
 
-                    const sqlTarefaAluno = 'DELETE FROM tblTarefaAluno WHERE idAluno = ?'
+                    const sqlTarefaAluno = "DELETE FROM tblTarefaAluno WHERE idAluno = ?";
                     connection.query(sqlTarefaAluno, idAluno, (error, result) => {
-                        if (error) { return res.status(500).send({ error: error, response: null }) }
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null
+                            });
+                        }
 
-                        const sqlIdUsuario = 'SELECT tblUsuario.idUsuario FROM tblUsuario INNER JOIN tblAluno ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE tblAluno.idAluno = ?'
+                        const sqlIdUsuario =
+                            "SELECT tblUsuario.idUsuario FROM tblUsuario INNER JOIN tblAluno ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE tblAluno.idAluno = ?";
                         connection.query(sqlIdUsuario, idAluno, (error, result) => {
-                            if (error) { return res.status(500).send({ error: error, response: null }) }
-                                        
+                            if (error) {
+                                return res.status(500).send({
+                                    error: error,
+                                    response: null
+                                });
+                            }
+
                             let result_obj = result;
                             let result_json = result_obj[Object.keys(result_obj)[0]];
                             idUsuario = result_json["idUsuario"];
 
-                            const sqlAluno = 'DELETE FROM tblAluno WHERE idAluno = ?'
+                            const sqlAluno = "DELETE FROM tblAluno WHERE idAluno = ?";
                             connection.query(sqlAluno, idAluno, (error, result) => {
-                                if (error) { return res.status(500).send({ error: error, response: null }) }
+                                if (error) {
+                                    return res.status(500).send({
+                                        error: error,
+                                        response: null
+                                    });
+                                }
 
-                                const sqlUsuario = 'DELETE FROM tblUsuario WHERE idUsuario = ?'
+                                const sqlUsuario = "DELETE FROM tblUsuario WHERE idUsuario = ?";
                                 connection.query(sqlUsuario, idUsuario, (error, result) => {
-                                    if (error) { return res.status(500).send({ error: error, response: null }) }
-                                                
-                                    res.status(202).send(
-                                        'Aluno Deletado'
-                                    );
-                                })     
-                            })
-                        })
-                    })
-                })
-            })
-        })
+                                    if (error) {
+                                        return res
+                                            .status(500)
+                                            .send({
+                                                error: error,
+                                                response: null
+                                            });
+                                    }
+
+                                    res.status(202).send("Aluno Deletado");
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
     });
 });
 

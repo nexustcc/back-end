@@ -1,3 +1,8 @@
+/**  
+ * TODO: Preciso fazer as rotas de DELETE Tópico (Aluno) e DELETE Tópico (Grupo), ao deletar um tópico, deverá deletar as tarefas existentes nele e qualquer relação que contenha o id a ser deletado
+ * TODO: Coloque essas duas rotas depois de router.put("/editarTopicoGrupo/:idTopicoGrupo"), para ficar mais organizado
+ * **/
+
 const express = require("express");
 const router = express.Router();
 const mysql = require("../mysql");
@@ -139,20 +144,107 @@ router.put("/editarTopicoGrupo/:idTopicoGrupo", (req, res) => {
     });
 });
 
-// router.post("/cadastrarTarefa/:idAluno", (req, res) => {
-// mysql.connect((error, connection) => {
-//     if (error) {
-//         return res.status(500).send({
-//             error: error,
-//         });
-//     }
+router.post("/cadastrarTarefa/:idTopicoAluno", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
 
-//         const sqlTarefa =
-//             "INSERT INTO tblTarefa (status, prioridade, nome, dataInicio, dataConclusao, idTopico, idCor, idAluno) VALUES (?, ?, ?)";
-//         const valuesTarefa = [
+        const sqlTarefa =
+            "INSERT INTO tblTarefa (status, prioridade, nome, dataInicio, dataConclusao, idTopicoAluno, idCor, idAluno) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        const valuesTarefa = [
+            req.body.status,
+            req.body.prioridade,
+            req.body.nome,
+            req.body.dataInicio,
+            req.body.dataConclusao,
+            req.params.idTopicoAluno,
+            req.body.idCor,
+            req.body.idAluno,
+        ];
 
-//         ];
-//     });
-// });
+        connection.query(sqlTarefa, valuesTarefa, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                message: "Tarefa de Aluno cadastrada com sucesso",
+            });
+        });
+    });
+});
+
+router.post("/cadastrarTarefaGeral/:idTopicoGrupo", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let idTarefaGeral;
+        let idAlunos;
+
+        const sqlTarefa =
+            "INSERT INTO tblTarefaGeral (status, prioridade, nome, dataInicio, dataConclusao, idTopicoGrupo, idCor) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        const valuesTarefa = [
+            req.body.status,
+            req.body.prioridade,
+            req.body.nome,
+            req.body.dataInicio,
+            req.body.dataConclusao,
+            req.params.idTopicoGrupo,
+            req.body.idCor,
+        ];
+
+        connection.query(sqlTarefa, valuesTarefa, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            idTarefaGeral = result.insertId;
+
+            console.log("id da TarefaGeral criada " + idTarefaGeral);
+
+            idAlunos = req.body.idAlunos;
+
+            console.log("idAlunos (todos) " + idAlunos);
+            console.log("Quantidade de alunos " + idAlunos.length);
+
+            let sqlTarefaAluno =
+                "INSERT INTO tblTarefaAluno (idTarefaGeral, idAluno) VALUES (?, ?)";
+
+            for (let a = 0; a < idAlunos.length; a++) {
+                connection.query(
+                    sqlTarefaAluno,
+                    [idTarefaGeral, idAlunos[a]],
+                    (error, result, field) => {
+                        if (error) {
+                            return res.status(500).send({
+                                error: error,
+                                response: null,
+                            });
+                        }
+
+                        console.log("idAlunos (for) " + idAlunos[a]);
+                    }
+                );
+            }
+
+            res.status(202).send({
+                message: "Tarefa de Grupo (Inserindo na tabela intermediária tblTarefaAluno) cadastrada com sucesso",
+            });
+        });
+    });
+});
 
 module.exports = router;

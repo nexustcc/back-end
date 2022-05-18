@@ -3,43 +3,13 @@
  * TODO: Coloque essas duas rotas depois de router.put("/editarTopicoGrupo/:idTopicoGrupo"), para ficar mais organizado
  * TODO: Também preciso fazer: GET Tópico (Aluno), GET Tópico (Grupo), GET Tarefa (Aluno), GET Tarefa (Grupo), utilizando o converterData do date.js para converter e formatar as datas
  * TODO: Farei primeiro os GETS que faltam e depois os DELETES que faltam
+ * TODO: Fazer também GET de Tarefa Específica
  * **/
 
 const express = require("express");
 const router = express.Router();
 const mysql = require("../mysql");
 const converterData = require("./utils/date");
-
-router.get("/listarCores", (req, res) => {
-    mysql.connect((error, connection) => {
-        if (error) {
-            return res.status(500).send({
-                error: error,
-            });
-        }
-
-        const sqlCor = "SELECT * FROM tblCor";
-
-        connection.query(sqlCor, (error, result, field) => {
-            if (error) {
-                return res.status(500).send({
-                    error: error,
-                    response: null,
-                });
-            }
-
-            res.status(200).send({
-                cores: result.map((cor) => {
-                    return {
-                        idCor: cor.idCor,
-                        nome: cor.nome,
-                        codigoHexadecimal: cor.codigoHexadecimal,
-                    };
-                }),
-            });
-        });
-    });
-});
 
 router.get("/listarCores", (req, res) => {
     mysql.connect((error, connection) => {
@@ -178,6 +148,79 @@ router.put("/editarTopicoGrupo/:idTopicoGrupo", (req, res) => {
     });
 });
 
+router.get("/listarTarefas", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql = "SELECT * FROM tblTarefa";
+        connection.query(sql, req.params.idTopicoAluno, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(200).send({
+                Tarefas: result.map((tarefa) => {
+                    return {
+                        idTarefa: tarefa.idTarefa,
+                        status: tarefa.status,
+                        prioridade: tarefa.prioridade,
+                        nome: tarefa.nome,
+                        dataInicio: converterData(tarefa.dataInicio),
+                        dataConclusao: converterData(tarefa.dataConclusao),
+                        idTopicoAluno: tarefa.idTopicoAluno,
+                        idCor: tarefa.idCor,
+                        idAluno: tarefa.idAluno
+                    };
+                }),
+            });
+        });
+    });
+});
+
+router.get("/listarTarefas/:idTopicoAluno", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql = "SELECT * FROM tblTarefa WHERE idTopicoAluno = ?";
+        connection.query(sql, req.params.idTopicoAluno, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(200).send({
+                Tarefas: result.map((tarefa) => {
+                    return {
+                        idTarefa: tarefa.idTarefa,
+                        status: tarefa.status,
+                        prioridade: tarefa.prioridade,
+                        nome: tarefa.nome,
+                        dataInicio: converterData(tarefa.dataInicio),
+                        dataConclusao: converterData(tarefa.dataConclusao),
+                        idTopicoAluno: tarefa.idTopicoAluno,
+                        idCor: tarefa.idCor,
+                        idAluno: tarefa.idAluno
+                    };
+                }),
+            });
+        });
+    });
+});
+
+
 router.post("/cadastrarTarefa/:idTopicoAluno", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -213,6 +256,83 @@ router.post("/cadastrarTarefa/:idTopicoAluno", (req, res) => {
         });
     });
 });
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Preciso finalizar, preciso de um SELECT que retorne também os alunos da tblTarefaAluno, mas sem repeti-los
+
+router.get("/listarTarefasGerais", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql = "SELECT tblTarefaGeral.*, tblTarefaAluno.idTarefaAluno, tblTarefaAluno.idAluno FROM tblTarefaGeral, tblTarefaAluno;";
+        connection.query(sql, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(200).send({
+                Tarefas: result.map((tarefa) => {
+                    return {
+                        idTarefaGeral: tarefa.idTarefaGeral,
+                        status: tarefa.status,
+                        prioridade: tarefa.prioridade,
+                        nome: tarefa.nome,
+                        dataInicio: converterData(tarefa.dataInicio),
+                        dataConclusao: converterData(tarefa.dataConclusao),
+                        idTopicoGrupo: tarefa.idTopicoAluno,
+                        idCor: tarefa.idCor,
+                        idAlunos: tarefa.idAlunos
+                    };
+                }),
+            });
+        });
+    });
+});
+////////////////////////////////////////////////////////////////////////////////////////////////
+//Ainda não iniciado
+
+// router.get("/listarTarefasGerais/:idTopicoGrupo", (req, res) => {
+//     mysql.connect((error, connection) => {
+//         if (error) {
+//             return res.status(500).send({
+//                 error: error,
+//             });
+//         }
+
+//         const sql = "SELECT * FROM tblTarefa WHERE idTopicoAluno = ?";
+//         connection.query(sql, req.params.idTopicoAluno, (error, result, field) => {
+//             if (error) {
+//                 return res.status(500).send({
+//                     error: error,
+//                     response: null,
+//                 });
+//             }
+
+//             res.status(200).send({
+//                 Tarefas: result.map((tarefa) => {
+//                     return {
+//                         idTarefa: tarefa.idTarefa,
+//                         status: tarefa.status,
+//                         prioridade: tarefa.prioridade,
+//                         nome: tarefa.nome,
+//                         dataInicio: converterData(tarefa.dataInicio),
+//                         dataConclusao: converterData(tarefa.dataConclusao),
+//                         idTopicoAluno: tarefa.idTopicoAluno,
+//                         idCor: tarefa.idCor,
+//                         idAluno: tarefa.idAluno
+//                     };
+//                 }),
+//             });
+//         });
+//     });
+// });
 
 router.post("/cadastrarTarefaGeral/:idTopicoGrupo", (req, res) => {
     mysql.connect((error, connection) => {
@@ -312,6 +432,31 @@ router.put("/editarTarefa/:idTarefa", (req, res) => {
 
             res.status(202).send({
                 message: "Tarefa de Aluno editada com sucesso",
+            });
+        });
+    });
+});
+
+router.delete("/deletarTarefa/:idTarefa", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+
+        const sql = "DELETE FROM tblTarefa WHERE idTarefa = ?";
+        connection.query(sql, req.params.idTarefa, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(200).send({
+                message: "tarefa deletada",
             });
         });
     });

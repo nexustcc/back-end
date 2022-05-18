@@ -8,6 +8,38 @@
 const express = require("express");
 const router = express.Router();
 const mysql = require("../mysql");
+const converterData = require("./utils/date");
+
+router.get("/listarCores", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sqlCor = "SELECT * FROM tblCor";
+
+        connection.query(sqlCor, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(200).send({
+                cores: result.map((cor) => {
+                    return {
+                        idCor: cor.idCor,
+                        nome: cor.nome,
+                        codigoHexadecimal: cor.codigoHexadecimal,
+                    };
+                }),
+            });
+        });
+    });
+});
 
 router.get("/listarCores", (req, res) => {
     mysql.connect((error, connection) => {

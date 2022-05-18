@@ -1,6 +1,8 @@
-/**  
+/**
  * TODO: Preciso fazer as rotas de DELETE Tópico (Aluno) e DELETE Tópico (Grupo), ao deletar um tópico, deverá deletar as tarefas existentes nele e qualquer relação que contenha o id a ser deletado
  * TODO: Coloque essas duas rotas depois de router.put("/editarTopicoGrupo/:idTopicoGrupo"), para ficar mais organizado
+ * TODO: Também preciso fazer: GET Tópico (Aluno), GET Tópico (Grupo), GET Tarefa (Aluno), GET Tarefa (Grupo), utilizando o converterData do date.js para converter e formatar as datas
+ * TODO: Farei primeiro os GETS que faltam e depois os DELETES que faltam
  * **/
 
 const express = require("express");
@@ -242,6 +244,78 @@ router.post("/cadastrarTarefaGeral/:idTopicoGrupo", (req, res) => {
 
             res.status(202).send({
                 message: "Tarefa de Grupo (Inserindo na tabela intermediária tblTarefaAluno) cadastrada com sucesso",
+            });
+        });
+    });
+});
+
+router.put("/editarTarefa/:idTarefa", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql =
+            "UPDATE tblTarefa SET status = ?, prioridade = ?, nome = ?, dataInicio = ?, dataConclusao = ?, idTopicoAluno = ?, idCor = ? WHERE idTarefa = ?;";
+        const values = [
+            req.body.status,
+            req.body.prioridade,
+            req.body.nome,
+            req.body.dataInicio,
+            req.body.dataConclusao,
+            req.body.idTopicoAluno,
+            req.body.idCor,
+            req.params.idTarefa,
+        ];
+
+        connection.query(sql, values, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                message: "Tarefa de Aluno editada com sucesso",
+            });
+        });
+    });
+});
+
+router.put("/editarTarefaGeral/:idTarefaGeral", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql =
+            "UPDATE tblTarefaGeral SET status = ?, prioridade = ?, nome = ?, dataInicio = ?, dataConclusao = ?, idTopicoGrupo = ?, idCor = ? WHERE idTarefaGeral = ?;";
+        const values = [
+            req.body.status,
+            req.body.prioridade,
+            req.body.nome,
+            req.body.dataInicio,
+            req.body.dataConclusao,
+            req.body.idTopicoGrupo,
+            req.body.idCor,
+            req.params.idTarefaGeral,
+        ];
+
+        connection.query(sql, values, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                message: "Tarefa de Grupo editada com sucesso",
             });
         });
     });

@@ -434,4 +434,63 @@ router.delete("/deletarAluno/:idAluno", (req, res) => {
     });
 });
 
+router.get('/listarAvaliacao/:idAluno', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let idGrupo;
+
+        const sqlGrupo = "SELECT idGrupo FROM tblAluno WHERE idAluno = ?";
+
+        connection.query(sqlGrupo, req.params.idAluno, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            let result_obj = result;
+            let result_json = result_obj[Object.keys(result_obj)[0]];
+            idGrupo = result_json["idGrupo"];
+
+            const sqlAvaliacao =
+                "SELECT * FROM tblAvaliacao WHERE idGrupo = ?";
+            connection.query(sqlAvaliacao, idGrupo, (error, result, field) => {
+
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+    
+                res.status(200).send({
+                    avaliacoes: result.map((avaliacao) => {
+                        return {
+                            objetividade: avaliacao.objetividade,
+                            dominioConteudo: avaliacao.dominioConteudo,
+                            organizacao: avaliacao.organizacao,
+                            clareza: avaliacao.clareza,
+                            aproveitamentoRecursos: avaliacao.aproveitamentoRecursos,
+                            posturaIntegrantes: avaliacao.posturaIntegrantes,
+                            fluenciaExposicaoIdeias: avaliacao.fluenciaExposicaoIdeias,
+                            argumentacao: avaliacao.argumentacao,
+                            usoTempo: avaliacao.usoTempo,
+                            capacidadeComunicacao: avaliacao.capacidadeComunicacao,
+                            observacoes: avaliacao.observacoes,
+                            idAvaliador: avaliacao.idAvaliador,
+                        };
+                    }),
+                });
+            })    
+
+        });
+    })
+})
+
 module.exports = router;

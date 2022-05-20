@@ -109,4 +109,99 @@ router.get("/avaliador/listarProfessoresGrupo/:idGrupo", (req, res) => {
     });
 });
 
+router.post("/avaliador/avaliarGrupo/:idAvaliador", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let idAvaliacao;
+
+        const sqlAvaliacao =
+            "INSERT INTO tblAvaliacao (objetividade, dominioConteudo, organizacao, clareza, aproveitamentoRecursos, posturaIntegrantes, fluenciaExposicaoIdeias, argumentacao, usoTempo, capacidadeComunicacao, observacoes, idAvaliador, idGrupo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        const valuesAvaliacao = [
+            req.body.objetividade,
+            req.body.dominioConteudo,
+            req.body.organizacao,
+            req.body.clareza,
+            req.body.aproveitamentoRecursos,
+            req.body.posturaIntegrantes,
+            req.body.fluenciaExposicaoIdeias,
+            req.body.argumentacao,
+            req.body.usoTempo,
+            req.body.capacidadeComunicacao,
+            req.body.observacoes,
+            req.params.idAvaliador,
+            req.body.idGrupo,
+        ];
+
+        connection.query(sqlAvaliacao, valuesAvaliacao, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                message: "Avaliacao Cadastrada com Sucesso",
+            });
+        });
+    });
+});
+
+// router.post("/cadastrarAluno", (req, res) => {
+// mysql.connect((error, connection) => {
+//     if (error) {
+//         return res.status(500).send({
+//             error: error,
+//         });
+//     }
+
+//         let senha = randomizarSenha();
+
+//         let idUsuario;
+
+//         const sqlUsuario =
+//             "INSERT INTO tblUsuario (nome, email, senha) VALUES (?, ?, ?)";
+//         const valuesUsuario = [req.body.nome, req.body.email, senha];
+//         connection.query(sqlUsuario, valuesUsuario, (error, result, field) => {
+// if (error) {
+//     return res.status(500).send({
+//         error: error,
+//         response: null,
+//     });
+// }
+//             console.log("cadastrou usuario");
+//             idUsuario = result.insertId;
+//             idGrupo = 0;
+
+//             const sqlAluno =
+//                 "INSERT INTO tblAluno (foto, idTurma, idUsuario, idGrupo) VALUES (?, ?, ?, ?)";
+//             const valuesAluno = [
+//                 "uploads/fotopadrao.svg",
+//                 req.body.idTurma,
+//                 idUsuario,
+//                 req.body.idGrupo,
+//             ];
+//             connection.query(sqlAluno, valuesAluno, (error, result, field) => {
+//                 if (error) {
+//                     return res.status(500).send({
+//                         error: error,
+//                         response: null,
+//                     });
+//                 }
+
+//                 //run(senha, req.body.email, req.body.nome);
+
+// res.status(202).send({
+//     message: "Aluno Cadastrado com Sucesso",
+// });
+//             });
+//         });
+//     });
+// });
+
 module.exports = router;

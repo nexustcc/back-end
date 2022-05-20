@@ -16,6 +16,8 @@ const router = express.Router();
 const mysql = require("../mysql");
 const converterData = require("./utils/date");
 
+
+
 router.get("/listarCores", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -47,6 +49,51 @@ router.get("/listarCores", (req, res) => {
     });
 });
 
+
+// ALUNOS GRUPO
+router.get("/listarAlunosGrupo/:idAluno", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let idGrupo;
+
+        const sqlGrupo = "SELECT idGrupo FROM tblaluno WHERE idAluno = ?";
+        connection.query(sqlGrupo, req.params.idAluno, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            let result_obj = result;
+            let result_json = result_obj[Object.keys(result_obj)[0]];
+            idGrupo = result_json["idGrupo"];
+
+            const sqlAlunosGrupo = "SELECT tblaluno.idAluno, tblusuario.nome, tblaluno.foto FROM tblaluno INNER JOIN tblusuario ON tblaluno.idUsuario = tblusuario.idUsuario INNER JOIN tblgrupo ON tblaluno.idgrupo = tblgrupo.idGrupo WHERE tblgrupo.idGrupo = ?";
+            connection.query(sqlAlunosGrupo, idGrupo, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+
+                res.status(202).send({
+                    alunos: result
+                });
+            });
+        });
+    });
+});
+
+
+
+// TÓPICO ALUNO
 router.post("/cadastrarTopicoAluno/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -74,6 +121,238 @@ router.post("/cadastrarTopicoAluno/:idAluno", (req, res) => {
     });
 });
 
+router.put("/editarTopicoAluno/:idTopicoAluno", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql = "UPDATE tblTopicoAluno SET nome = ? WHERE idTopicoAluno = ?;";
+        const values = [req.body.nome, req.params.idTopicoAluno];
+        connection.query(sql, values, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                message: "Topico de Aluno editado com sucesso",
+            });
+        });
+    });
+});
+
+router.get('/listarTopicoAluno/:idAluno', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sqlTopicoAluno = "SELECT tbltopicoaluno.idTopicoAluno, tbltopicoaluno.nome FROM tbltopicoaluno WHERE idAluno = ?";
+        connection.query(sqlTopicoAluno, req.params.idAluno, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                topicos_aluno: result
+            });
+        });
+    });
+})
+
+
+// TAREFAS ALUNO
+router.post("/cadastrarTarefa/:idAluno", (req, res) => {
+    mysql.connect((error, connection) => {
+
+        var dateTime = new Date();
+        var dateSplit = dateTime.toISOString().split(["T"]);
+
+        const sqlTarefa =
+            "INSERT INTO tblTarefa (status, prioridade, nome, dataInicio, dataConclusao, idTopicoAluno, idCor, idAluno) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        const valuesTarefa = [
+            "Não iniciada",
+            "Média",
+            req.body.nome,
+            dateSplit[0],
+            req.body.dataConclusao,
+            req.body.idTopicoAluno,
+            2,
+            req.params.idAluno,
+        ];
+
+        connection.query(sqlTarefa, valuesTarefa, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                message: "Tarefa de Aluno cadastrada com sucesso",
+            });
+        });
+    });
+});
+
+router.put("/editarTarefa/:idTarefa", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql =
+            "UPDATE tblTarefa SET status = ?, prioridade = ?, nome = ?, dataInicio = ?, dataConclusao = ?, idTopicoAluno = ?, idCor = ? WHERE idTarefa = ?;";
+        const values = [
+            req.body.status,
+            req.body.prioridade,
+            req.body.nome,
+            req.body.dataInicio,
+            req.body.dataConclusao,
+            req.body.idTopicoAluno,
+            req.body.idCor,
+            req.params.idTarefa,
+        ];
+
+        connection.query(sql, values, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                message: "Tarefa de Aluno editada com sucesso",
+            });
+        });
+    });
+});
+
+router.get("/listarTarefas/:idAluno", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let tarefas = []
+
+        const sqlTopicosAluno = 'SELECT tbltopicoaluno.idTopicoAluno, tbltopicoaluno.nome FROM tbltopicoaluno WHERE tbltopicoaluno.idAluno = ?'
+        connection.query(sqlTopicosAluno, req.params.idAluno, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            let topicos = result
+            
+            for (let o = 0; o < topicos.length; o++) {
+                let idTopicoAluno = topicos[o].idTopicoAluno
+
+                const sqlTarefa = 'SELECT * FROM tbltarefa WHERE tbltarefa.idTopicoAluno = ?'
+                connection.query(sqlTarefa, idTopicoAluno, (error, result, field) => {
+                    if (error) {
+                        return res.status(500).send({
+                            error: error,
+                            response: null,
+                        });
+                    }
+
+                    let jsonTarefas = result
+
+                    console.log(jsonTarefas)
+
+                    // tarefas.push(topicos[o].nome = result)
+                    // console.log(tarefas)
+                })
+                // result[o].nome = [
+                //     {
+                //         'a': 'a'
+                //     },
+                //     1,
+                //     2,
+                //     3
+                // ]
+
+                // tarefas.push(result[o].nome)
+
+
+            }
+        })    
+
+        // const sql = "SELECT * FROM tblTarefa WHERE idTopicoAluno = ?";
+        // connection.query(sql, req.params.idTopicoAluno, (error, result, field) => {
+        //     if (error) {
+        //         return res.status(500).send({
+        //             error: error,
+        //             response: null,
+        //         });
+        //     }
+
+        //     res.status(200).send({
+        //         Tarefas: result.map((tarefa) => {
+        //             return {
+        //                 idTarefa: tarefa.idTarefa,
+        //                 status: tarefa.status,
+        //                 prioridade: tarefa.prioridade,
+        //                 nome: tarefa.nome,
+        //                 dataInicio: converterData(tarefa.dataInicio),
+        //                 dataConclusao: converterData(tarefa.dataConclusao),
+        //                 idTopicoAluno: tarefa.idTopicoAluno,
+        //                 idCor: tarefa.idCor,
+        //                 idAluno: tarefa.idAluno,
+        //             };
+        //         }),
+        //     });
+        // });
+    });
+});
+
+router.delete("/deletarTarefa/:idTarefa", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql = "DELETE FROM tblTarefa WHERE idTarefa = ?";
+        connection.query(sql, req.params.idTarefa, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(200).send({
+                message: "tarefa deletada",
+            });
+        });
+    });
+});
+
+
+
+
+// TÓPICO GERAL
 router.post("/cadastrarTopicoGrupo/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -116,31 +395,6 @@ router.post("/cadastrarTopicoGrupo/:idAluno", (req, res) => {
     });
 });
 
-router.put("/editarTopicoAluno/:idTopicoAluno", (req, res) => {
-    mysql.connect((error, connection) => {
-        if (error) {
-            return res.status(500).send({
-                error: error,
-            });
-        }
-
-        const sql = "UPDATE tblTopicoAluno SET nome = ? WHERE idTopicoAluno = ?;";
-        const values = [req.body.nome, req.params.idTopicoAluno];
-        connection.query(sql, values, (error, result, field) => {
-            if (error) {
-                return res.status(500).send({
-                    error: error,
-                    response: null,
-                });
-            }
-
-            res.status(202).send({
-                message: "Topico de Aluno editado com sucesso",
-            });
-        });
-    });
-});
-
 router.put("/editarTopicoGrupo/:idTopicoGrupo", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -166,7 +420,7 @@ router.put("/editarTopicoGrupo/:idTopicoGrupo", (req, res) => {
     });
 });
 
-router.get("/listarTarefas/:idTopicoAluno", (req, res) => {
+router.get('/listarTopicoGrupo/:idAluno', (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -174,59 +428,8 @@ router.get("/listarTarefas/:idTopicoAluno", (req, res) => {
             });
         }
 
-        const sql = "SELECT * FROM tblTarefa WHERE idTopicoAluno = ?";
-        connection.query(sql, req.params.idTopicoAluno, (error, result, field) => {
-            if (error) {
-                return res.status(500).send({
-                    error: error,
-                    response: null,
-                });
-            }
-
-            res.status(200).send({
-                Tarefas: result.map((tarefa) => {
-                    return {
-                        idTarefa: tarefa.idTarefa,
-                        status: tarefa.status,
-                        prioridade: tarefa.prioridade,
-                        nome: tarefa.nome,
-                        dataInicio: converterData(tarefa.dataInicio),
-                        dataConclusao: converterData(tarefa.dataConclusao),
-                        idTopicoAluno: tarefa.idTopicoAluno,
-                        idCor: tarefa.idCor,
-                        idAluno: tarefa.idAluno,
-                    };
-                }),
-            });
-        });
-    });
-});
-
-router.post("/cadastrarTarefa/:idTopicoAluno", (req, res) => {
-    mysql.connect((error, connection) => {
-        // if (error) {
-        //     return res.status(500).send({
-        //         error: error,
-        //     });
-        // }
-
-        var dateTime = new Date();
-        var dateSplit = dateTime.toISOString().split(["T"]);
-
-        const sqlTarefa =
-            "INSERT INTO tblTarefa (status, prioridade, nome, dataInicio, dataConclusao, idTopicoAluno, idCor, idAluno) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        const valuesTarefa = [
-            "Não iniciada",
-            "Média",
-            req.body.nome,
-            dateSplit[0],
-            req.body.dataConclusao,
-            req.params.idTopicoAluno,
-            2,
-            req.body.idAluno,
-        ];
-
-        connection.query(sqlTarefa, valuesTarefa, (error, result, field) => {
+        const sqlTopicoAluno = "SELECT tbltopicogrupo.idTopicogrupo, tbltopicogrupo.nome FROM tbltopicogrupo WHERE idgrupo = ?";
+        connection.query(sqlTopicoAluno, req.params.idAluno, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
                     error: error,
@@ -235,52 +438,14 @@ router.post("/cadastrarTarefa/:idTopicoAluno", (req, res) => {
             }
 
             res.status(202).send({
-                message: "Tarefa de Aluno cadastrada com sucesso",
+                topicos_grupo: result
             });
         });
     });
-});
+})
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-//Ainda não iniciado
 
-// router.get("/listarTarefasGerais/:idTopicoGrupo", (req, res) => {
-//     mysql.connect((error, connection) => {
-//         if (error) {
-//             return res.status(500).send({
-//                 error: error,
-//             });
-//         }
-
-//         const sql = "SELECT * FROM tblTarefa WHERE idTopicoAluno = ?";
-//         connection.query(sql, req.params.idTopicoAluno, (error, result, field) => {
-//             if (error) {
-//                 return res.status(500).send({
-//                     error: error,
-//                     response: null,
-//                 });
-//             }
-
-//             res.status(200).send({
-//                 Tarefas: result.map((tarefa) => {
-//                     return {
-//                         idTarefa: tarefa.idTarefa,
-//                         status: tarefa.status,
-//                         prioridade: tarefa.prioridade,
-//                         nome: tarefa.nome,
-//                         dataInicio: converterData(tarefa.dataInicio),
-//                         dataConclusao: converterData(tarefa.dataConclusao),
-//                         idTopicoAluno: tarefa.idTopicoAluno,
-//                         idCor: tarefa.idCor,
-//                         idAluno: tarefa.idAluno
-//                     };
-//                 }),
-//             });
-//         });
-//     });
-// });
-////////////////////////////////////////////////////////////////////////////////////////////////
-
+// TAREFAS ALUNO
 router.post("/cadastrarTarefaGeral/:idTopicoGrupo", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -296,7 +461,7 @@ router.post("/cadastrarTarefaGeral/:idTopicoGrupo", (req, res) => {
         var dateSplit = dateTime.toISOString().split(["T"]);
 
         const sqlTarefa =
-            "INSERT INTO tblTarefaGeral (status, prioridade, nome, dataInicio, dataConclusao, idTopicoGrupo, idCor) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            "INSERT INTO tblTarefaGeral (status, prioridade, nome, dataInicio, dataConclusao, idTopico, idCor) VALUES (?, ?, ?, ?, ?, ?, ?)";
         const valuesTarefa = [
             "Não iniciada",
             "Média",
@@ -317,20 +482,14 @@ router.post("/cadastrarTarefaGeral/:idTopicoGrupo", (req, res) => {
 
             idTarefaGeral = result.insertId;
 
-            console.log("id da TarefaGeral criada " + idTarefaGeral);
-
             idAlunos = req.body.idAlunos;
 
-            console.log("idAlunos (todos) " + idAlunos);
-            console.log("Quantidade de alunos " + idAlunos.length);
-
-            let sqlTarefaAluno =
-                "INSERT INTO tblTarefaAluno (idTarefaGeral, idAluno) VALUES (?, ?)";
+            let sqlTarefaAluno = "INSERT INTO tblTarefaAluno (idAluno, idTarefaGeral) VALUES (?, ?)";
 
             for (let a = 0; a < idAlunos.length; a++) {
                 connection.query(
                     sqlTarefaAluno,
-                    [idTarefaGeral, idAlunos[a]],
+                    [idAlunos[a], idTarefaGeral],
                     (error, result, field) => {
                         if (error) {
                             return res.status(500).send({
@@ -338,74 +497,12 @@ router.post("/cadastrarTarefaGeral/:idTopicoGrupo", (req, res) => {
                                 response: null,
                             });
                         }
-
-                        console.log("idAlunos (for) " + idAlunos[a]);
                     }
                 );
             }
 
             res.status(202).send({
-                message: "Tarefa de Grupo (Inserindo na tabela intermediária tblTarefaAluno) cadastrada com sucesso",
-            });
-        });
-    });
-});
-
-router.put("/editarTarefa/:idTarefa", (req, res) => {
-    mysql.connect((error, connection) => {
-        if (error) {
-            return res.status(500).send({
-                error: error,
-            });
-        }
-
-        const sql =
-            "UPDATE tblTarefa SET status = ?, prioridade = ?, nome = ?, dataInicio = ?, dataConclusao = ?, idTopicoAluno = ?, idCor = ? WHERE idTarefa = ?;";
-        const values = [
-            req.body.status,
-            req.body.prioridade,
-            req.body.nome,
-            req.body.dataInicio,
-            req.body.dataConclusao,
-            req.body.idTopicoAluno,
-            req.body.idCor,
-            req.params.idTarefa,
-        ];
-
-        connection.query(sql, values, (error, result, field) => {
-            if (error) {
-                return res.status(500).send({
-                    error: error,
-                    response: null,
-                });
-            }
-
-            res.status(202).send({
-                message: "Tarefa de Aluno editada com sucesso",
-            });
-        });
-    });
-});
-
-router.delete("/deletarTarefa/:idTarefa", (req, res) => {
-    mysql.connect((error, connection) => {
-        if (error) {
-            return res.status(500).send({
-                error: error,
-            });
-        }
-
-        const sql = "DELETE FROM tblTarefa WHERE idTarefa = ?";
-        connection.query(sql, req.params.idTarefa, (error, result, field) => {
-            if (error) {
-                return res.status(500).send({
-                    error: error,
-                    response: null,
-                });
-            }
-
-            res.status(200).send({
-                message: "tarefa deletada",
+                message: "Tarefa Geral cadastrada",
             });
         });
     });
@@ -447,22 +544,48 @@ router.put("/editarTarefaGeral/:idTarefaGeral", (req, res) => {
     });
 });
 
-// router.delete("/deletarTarefaGeral/:idTarefaGeral", (req, res) => {
-//     if (error) {
-//         return res.status(500).send({
-//             error: error,
-//         });
-//     }
-// });
-
-router.get("/listarAlunosGrupo/:idAluno", (req, res) => {
+router.get("/listarTarefasGerais/:idTopicoGrupo", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
                 error: error,
             });
         }
+
+        const sql = "SELECT * FROM tblTarefa WHERE idTopicoAluno = ?";
+        connection.query(sql, req.params.idTopicoAluno, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(200).send({
+                Tarefas: result.map((tarefa) => {
+                    return {
+                        idTarefa: tarefa.idTarefa,
+                        status: tarefa.status,
+                        prioridade: tarefa.prioridade,
+                        nome: tarefa.nome,
+                        dataInicio: converterData(tarefa.dataInicio),
+                        dataConclusao: converterData(tarefa.dataConclusao),
+                        idTopicoAluno: tarefa.idTopicoAluno,
+                        idCor: tarefa.idCor,
+                        idAluno: tarefa.idAluno
+                    };
+                }),
+            });
+        });
     });
+});
+
+router.delete("/deletarTarefaGeral/:idTarefaGeral", (req, res) => {
+    if (error) {
+        return res.status(500).send({
+            error: error,
+        });
+    }
 });
 
 module.exports = router;

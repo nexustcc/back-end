@@ -7,6 +7,8 @@ function converterData(data) {
         let dataArraySplit = dataArray.split(["-"]);
         let dataFinal = dataArraySplit[2] + "/" + dataArraySplit[1] + "/" + dataArraySplit[0];
         return dataFinal;
+    } else {
+        return data = "";
     }
 }
 

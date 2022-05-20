@@ -13,7 +13,7 @@ router.get("/avaliador/listarGruposAvaliador/:idAvaliador", (req, res) => {
         }
 
         const sql =
-            "SELECT nomeProjeto, temaProjeto FROM tblGrupo INNER JOIN tblAvaliadorGrupo ON tblGrupo.idGrupo = tblAvaliadorGrupo.idGrupo WHERE idAvaliador = ?";
+            "SELECT tblgrupo.idGrupo, tblgrupo.nomeProjeto, tblgrupo.temaProjeto FROM tblGrupo INNER JOIN tblAvaliadorGrupo ON tblGrupo.idGrupo = tblAvaliadorGrupo.idGrupo WHERE idAvaliador = ?";
         const values = [req.params.idAvaliador];
         connection.query(sql, values, (error, result, field) => {
             if (error) {

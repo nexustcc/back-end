@@ -17,7 +17,7 @@ const mysql = require("../mysql");
 const converterData = require("./utils/date");
 
 
-
+// CORES - TAREFA e TÓPICO
 router.get("/listarCores", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -48,7 +48,6 @@ router.get("/listarCores", (req, res) => {
         });
     });
 });
-
 
 // ALUNOS GRUPO
 router.get("/listarAlunosGrupo/:idAluno", (req, res) => {
@@ -102,8 +101,7 @@ router.post("/cadastrarTopicoAluno/:idAluno", (req, res) => {
             });
         }
 
-        const sqlTopico =
-            "INSERT INTO tblTopicoAluno (nome, idCor, idAluno) VALUES (?, ?, ?)";
+        const sqlTopico =  "INSERT INTO tblTopicoAluno (nome, idCor, idAluno) VALUES (?, ?, ?)";
         const valuesTopico = [req.body.nome, 2, req.params.idAluno];
 
         connection.query(sqlTopico, valuesTopico, (error, result, field) => {
@@ -170,6 +168,41 @@ router.get('/listarTopicoAluno/:idAluno', (req, res) => {
     });
 })
 
+router.delete('/deletarTopicoAluno/:idTopicoAluno', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sqlDeleteTarefasTopico = 'DELETE FROM tbltarefa WHERE idTopicoAluno = ?'
+        connection.query(sqlDeleteTarefasTopico, req.params.idTopicoAluno, (error, result) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            const sqlDeleteTopicoAluno = 'DELETE FROM tbltopicoaluno WHERE idTopicoAluno = ?'
+            connection.query(sqlDeleteTopicoAluno, req.params.idTopicoAluno, (error, result) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+
+                res.status(202).send({
+                    message: 'Topico do Aluno deletado com sucesso'
+                })
+                
+            })
+        })
+    })
+})
+
 
 // TAREFAS ALUNO
 router.post("/cadastrarTarefa/:idAluno", (req, res) => {
@@ -215,12 +248,11 @@ router.put("/editarTarefa/:idTarefa", (req, res) => {
         }
 
         const sql =
-            "UPDATE tblTarefa SET status = ?, prioridade = ?, nome = ?, dataInicio = ?, dataConclusao = ?, idTopicoAluno = ?, idCor = ? WHERE idTarefa = ?;";
+            "UPDATE tblTarefa SET status = ?, prioridade = ?, nome = ?, dataConclusao = ?, idTopicoAluno = ?, idCor = ? WHERE idTarefa = ?;";
         const values = [
             req.body.status,
             req.body.prioridade,
             req.body.nome,
-            req.body.dataInicio,
             req.body.dataConclusao,
             req.body.idTopicoAluno,
             req.body.idCor,
@@ -249,79 +281,42 @@ router.get("/listarTarefas/:idAluno", (req, res) => {
                 error: error,
             });
         }
-
-        let tarefas = []
-
+        
+        
         const sqlTopicosAluno = 'SELECT tbltopicoaluno.idTopicoAluno, tbltopicoaluno.nome FROM tbltopicoaluno WHERE tbltopicoaluno.idAluno = ?'
-        connection.query(sqlTopicosAluno, req.params.idAluno, (error, result, field) => {
+        connection.query(sqlTopicosAluno, req.params.idAluno, (error, result, field) =>  {
             if (error) {
                 return res.status(500).send({
                     error: error,
                     response: null,
                 });
             }
-
+            
             let topicos = result
             
-            for (let o = 0; o < topicos.length; o++) {
-                let idTopicoAluno = topicos[o].idTopicoAluno
+            let tarefas = []
 
-                const sqlTarefa = 'SELECT * FROM tbltarefa WHERE tbltarefa.idTopicoAluno = ?'
-                connection.query(sqlTarefa, idTopicoAluno, (error, result, field) => {
-                    if (error) {
-                        return res.status(500).send({
-                            error: error,
-                            response: null,
-                        });
+            if(topicos.length == 0) res.status(200).send(tarefas)
+            
+            for (let t = 0; t < topicos.length; t++) {
+    
+                let idTopico = topicos[t].idTopicoAluno
+                let nomeTopico = topicos[t].nome
+    
+                const sqlTarefas = 'SELECT * FROM tbltarefa WHERE idTopicoAluno = ?'
+                connection.query(sqlTarefas, idTopico, (error, result) => {
+
+                    let tarefasDoTopico = result 
+                        
+                    if((t + 1) == (topicos.length)){
+                        tarefas.push({'idTopico': idTopico, 'nomeTopico': nomeTopico, tarefasDoTopico})
+                        res.status(200).send(tarefas)
+                    } else{
+                        tarefas.push({'idTopico': idTopico, 'nomeTopico': nomeTopico, tarefasDoTopico})
                     }
-
-                    let jsonTarefas = result
-
-                    console.log(jsonTarefas)
-
-                    // tarefas.push(topicos[o].nome = result)
-                    // console.log(tarefas)
                 })
-                // result[o].nome = [
-                //     {
-                //         'a': 'a'
-                //     },
-                //     1,
-                //     2,
-                //     3
-                // ]
-
-                // tarefas.push(result[o].nome)
-
-
             }
-        })    
-
-        // const sql = "SELECT * FROM tblTarefa WHERE idTopicoAluno = ?";
-        // connection.query(sql, req.params.idTopicoAluno, (error, result, field) => {
-        //     if (error) {
-        //         return res.status(500).send({
-        //             error: error,
-        //             response: null,
-        //         });
-        //     }
-
-        //     res.status(200).send({
-        //         Tarefas: result.map((tarefa) => {
-        //             return {
-        //                 idTarefa: tarefa.idTarefa,
-        //                 status: tarefa.status,
-        //                 prioridade: tarefa.prioridade,
-        //                 nome: tarefa.nome,
-        //                 dataInicio: converterData(tarefa.dataInicio),
-        //                 dataConclusao: converterData(tarefa.dataConclusao),
-        //                 idTopicoAluno: tarefa.idTopicoAluno,
-        //                 idCor: tarefa.idCor,
-        //                 idAluno: tarefa.idAluno,
-        //             };
-        //         }),
-        //     });
-        // });
+        })
     });
 });
 
@@ -376,8 +371,7 @@ router.post("/cadastrarTopicoGrupo/:idAluno", (req, res) => {
             let result_json = result_obj[Object.keys(result_obj)[0]];
             idGrupo = result_json["idGrupo"];
 
-            const sqlTopico =
-                "INSERT INTO tblTopicoGrupo (nome, idCor, idGrupo) VALUES (?, ?, ?)";
+            const sqlTopico = "INSERT INTO tblTopicoGrupo (nome, idCor, idGrupo) VALUES (?, ?, ?)";
             const valuesTopico = [req.body.nome, 2, idGrupo];
             connection.query(sqlTopico, valuesTopico, (error, result, field) => {
                 if (error) {
@@ -428,8 +422,10 @@ router.get('/listarTopicoGrupo/:idAluno', (req, res) => {
             });
         }
 
-        const sqlTopicoAluno = "SELECT tbltopicogrupo.idTopicogrupo, tbltopicogrupo.nome FROM tbltopicogrupo WHERE idgrupo = ?";
-        connection.query(sqlTopicoAluno, req.params.idAluno, (error, result, field) => {
+        let idGrupo;
+
+        const sqlGrupo = "SELECT idGrupo FROM tblaluno WHERE idAluno = ?";
+        connection.query(sqlGrupo, req.params.idAluno, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
                     error: error,
@@ -437,42 +433,41 @@ router.get('/listarTopicoGrupo/:idAluno', (req, res) => {
                 });
             }
 
-            res.status(202).send({
-                topicos_grupo: result
+            let result_obj = result;
+            let result_json = result_obj[Object.keys(result_obj)[0]];
+            idGrupo = result_json["idGrupo"];
+
+            const sqlTopicoAluno = "SELECT tbltopicogrupo.idTopicogrupo, tbltopicogrupo.nome FROM tbltopicogrupo WHERE idgrupo = ?";
+            connection.query(sqlTopicoAluno, idGrupo, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+    
+                res.status(202).send({
+                    topicos_grupo: result
+                });
             });
-        });
+        })
     });
 })
 
 
 // TAREFAS ALUNO
-router.post("/cadastrarTarefaGeral/:idTopicoGrupo", (req, res) => {
+router.post("/cadastrarTarefaGeral/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
                 error: error,
             });
         }
+        
+        let idGrupo;
 
-        let idTarefaGeral;
-        let idAlunos;
-
-        var dateTime = new Date();
-        var dateSplit = dateTime.toISOString().split(["T"]);
-
-        const sqlTarefa =
-            "INSERT INTO tblTarefaGeral (status, prioridade, nome, dataInicio, dataConclusao, idTopico, idCor) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        const valuesTarefa = [
-            "Não iniciada",
-            "Média",
-            req.body.nome,
-            dateSplit[0],
-            req.body.dataConclusao,
-            req.params.idTopicoGrupo,
-            2,
-        ];
-
-        connection.query(sqlTarefa, valuesTarefa, (error, result, field) => {
+        const sqlGrupo = "SELECT idGrupo FROM tblaluno WHERE idAluno = ?";
+        connection.query(sqlGrupo, req.params.idAluno, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
                     error: error,
@@ -480,31 +475,53 @@ router.post("/cadastrarTarefaGeral/:idTopicoGrupo", (req, res) => {
                 });
             }
 
-            idTarefaGeral = result.insertId;
+            let result_obj = result;
+            let result_json = result_obj[Object.keys(result_obj)[0]];
+            idGrupo = result_json["idGrupo"];
+            
+            var dateTime = new Date();
+            var dateSplit = dateTime.toISOString().split(["T"]);
+            
+            const sqlTarefa = "INSERT INTO tblTarefaGeral (status, prioridade, nome, dataInicio, dataConclusao, idTopicoGrupo, idCor) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            const valuesTarefa = [
+                "Não iniciada",
+                "Média",
+                req.body.nome,
+                dateSplit[0],
+                req.body.dataConclusao,
+                req.body.idTopicoGrupo,
+                2,
+            ];
+            
+            connection.query(sqlTarefa, valuesTarefa, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+            
+                let idTarefaGeral = result.insertId;
 
-            idAlunos = req.body.idAlunos;
+                let idAlunos = req.body.idAlunos;
 
-            let sqlTarefaAluno = "INSERT INTO tblTarefaAluno (idAluno, idTarefaGeral) VALUES (?, ?)";
-
-            for (let a = 0; a < idAlunos.length; a++) {
-                connection.query(
-                    sqlTarefaAluno,
-                    [idAlunos[a], idTarefaGeral],
-                    (error, result, field) => {
+                let sqlTarefaAluno = "INSERT INTO tblTarefaAluno (idAluno, idTarefaGeral) VALUES (?, ?)";
+                for (let a = 0; a < idAlunos.length; a++) {
+                    connection.query(sqlTarefaAluno, [idAlunos[a], idTarefaGeral], (error, result, field) => {
                         if (error) {
                             return res.status(500).send({
                                 error: error,
                                 response: null,
                             });
                         }
-                    }
-                );
-            }
-
-            res.status(202).send({
-                message: "Tarefa Geral cadastrada",
+                    });
+                }
+            
+                res.status(202).send({
+                    message: "Tarefa Geral cadastrada",
+                });
             });
-        });
+        })
     });
 });
 
@@ -516,20 +533,10 @@ router.put("/editarTarefaGeral/:idTarefaGeral", (req, res) => {
             });
         }
 
-        const sql =
-            "UPDATE tblTarefaGeral SET status = ?, prioridade = ?, nome = ?, dataInicio = ?, dataConclusao = ?, idTopicoGrupo = ?, idCor = ? WHERE idTarefaGeral = ?;";
-        const values = [
-            req.body.status,
-            req.body.prioridade,
-            req.body.nome,
-            req.body.dataInicio,
-            req.body.dataConclusao,
-            req.body.idTopicoGrupo,
-            req.body.idCor,
-            req.params.idTarefaGeral,
-        ];
+        let novosAlunos = req.body.idAlunos 
 
-        connection.query(sql, values, (error, result, field) => {
+        const sqlAlunosTarefa = 'SELECT idAluno FROM tbltarefaaluno WHERE idTarefaGeral = ?'
+        connection.query(sqlAlunosTarefa, req.params.idTarefaGeral, (error, result, field) => {
             if (error) {
                 return res.status(500).send({
                     error: error,
@@ -537,14 +544,60 @@ router.put("/editarTarefaGeral/:idTarefaGeral", (req, res) => {
                 });
             }
 
-            res.status(202).send({
-                message: "Tarefa de Grupo editada com sucesso",
+            let alunosTarefaAntigo = []
+
+            for (let a = 0; a < result.length; a++) {
+                alunosTarefaAntigo.push(result[a].idAluno)
+            }
+
+            for (let a = 0; a < alunosTarefaAntigo.length; a++) {
+                if (novosAlunos.includes(alunosTarefaAntigo[a]) == false) {
+                    console.log('aluno ' + alunosTarefaAntigo[a] + ' RETIRADO da tarefa')
+                    
+                    const sqlDeleteAlunoTarefa = 'DELETE FROM tbltarefaaluno WHERE idAluno = ? AND idTarefaGeral = ?'
+                    connection.query(sqlDeleteAlunoTarefa, [alunosTarefaAntigo[a], req.params.idTarefaGeral], (error, result, field) => {
+                        if (error) return res.status(500).send({ error: error, response: null });
+                    })
+                }
+            }
+
+            for (let a = 0; a < novosAlunos.length; a++) {
+                if (alunosTarefaAntigo.includes(novosAlunos[a]) == false) {
+                    console.log('aluno ' + novosAlunos[a] + ' ADICIONADO da tarefa')
+
+                    const sqlAdicionarAlunoTarefa = 'INSERT INTO tbltarefaaluno (idAluno, idTarefaGeral) VALUES (?, ?)'
+                    connection.query(sqlAdicionarAlunoTarefa, [novosAlunos[a], req.params.idTarefaGeral], (error, result, field) => {
+                        if (error) return res.status(500).send({ error: error, response: null });
+                    })
+                }
+            }
+            
+            const sql = "UPDATE tblTarefaGeral SET status = ?, prioridade = ?, nome = ?, dataConclusao = ?, idTopicoGrupo = ?, idCor = ? WHERE idTarefaGeral = ?;";
+            const values = [
+                req.body.status,
+                req.body.prioridade,
+                req.body.nome,
+                req.body.dataConclusao,
+                req.body.idTopicoGrupo,
+                req.body.idCor,
+                req.params.idTarefaGeral,
+            ];
+            
+            connection.query(sql, values, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+            
+                res.status(202).send({ message: "Tarefa de Grupo editada com sucesso" });
             });
-        });
+        })
     });
 });
 
-router.get("/listarTarefasGerais/:idTopicoGrupo", (req, res) => {
+router.get("/listarTarefasGerais/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -552,40 +605,61 @@ router.get("/listarTarefasGerais/:idTopicoGrupo", (req, res) => {
             });
         }
 
-        const sql = "SELECT * FROM tblTarefa WHERE idTopicoAluno = ?";
-        connection.query(sql, req.params.idTopicoAluno, (error, result, field) => {
+        const sqlTopicosAlunoGrupo = 'SELECT tbltopicogrupo.idTopicoGrupo, tbltopicogrupo.nome FROM tbltopicogrupo INNER JOIN tblgrupo ON tblgrupo.idGrupo = tbltopicogrupo.idGrupo INNER JOIN tblaluno ON tblaluno.idGrupo = tblgrupo.idGrupo WHERE tblaluno.idAluno = ?'
+        connection.query(sqlTopicosAlunoGrupo, req.params.idAluno, (error, result, field) =>  {
             if (error) {
                 return res.status(500).send({
                     error: error,
                     response: null,
                 });
             }
+            
+            let topicos = result
+            
+            let tarefas = []
 
-            res.status(200).send({
-                Tarefas: result.map((tarefa) => {
-                    return {
-                        idTarefa: tarefa.idTarefa,
-                        status: tarefa.status,
-                        prioridade: tarefa.prioridade,
-                        nome: tarefa.nome,
-                        dataInicio: converterData(tarefa.dataInicio),
-                        dataConclusao: converterData(tarefa.dataConclusao),
-                        idTopicoAluno: tarefa.idTopicoAluno,
-                        idCor: tarefa.idCor,
-                        idAluno: tarefa.idAluno
-                    };
-                }),
-            });
-        });
+            if(topicos.length == 0) res.status(200).send({ tarefas: tarefas})
+
+            for (let t = 0; t < topicos.length; t++) {
+    
+                let idTopico = topicos[t].idTopicoAluno
+                let nomeTopico = topicos[t].nome
+    
+                const sqlTarefas = 'SELECT * FROM tbltarefa WHERE idTopicoAluno = ?'
+                connection.query(sqlTarefas, idTopico, (error, result) => {
+
+                    let tarefasDoTopico = result 
+                        
+                    if((t + 1) == (topicos.length)){
+                        tarefas.push( {'idTopico': idTopico, 'nomeTopico': nomeTopico, tarefasDoTopico} )
+                        res.status(200).send(tarefas)
+                    } else{
+                        tarefas.push( {'idTopico': idTopico, 'nomeTopico': nomeTopico, tarefasDoTopico} )
+                    }
+                })
+            }
+        })
     });
 });
 
 router.delete("/deletarTarefaGeral/:idTarefaGeral", (req, res) => {
-    if (error) {
-        return res.status(500).send({
-            error: error,
+    mysql.connect((error, connection) => {
+        if (error) return res.status(500).send({ error: error });
+
+        const sqlDeleteAlunosTarefa = "DELETE FROM tbltarefaaluno WHERE idTarefaGeral = ?";
+        connection.query(sqlDeleteAlunosTarefa, req.params.idTarefaGeral, (error, result, field) => {
+
+            if (error) return res.status(500).send({ error: error, response: null });
+
+            const sqlDeleteTarefa = "DELETE FROM tbltarefageral WHERE idTarefaGeral = ?";
+            connection.query(sqlDeleteTarefa, req.params.idTarefaGeral, (error, result, field) => {
+
+                if (error) return res.status(500).send({ error: error, response: null });
+
+                res.status(200).send({ message: "tarefa deletada" });
+            });
         });
-    }
+    })
 });
 
 module.exports = router;

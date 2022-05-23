@@ -152,6 +152,26 @@ router.post("/avaliador/avaliarGrupo/:idAvaliador", (req, res) => {
     });
 });
 
+
+
+router.post('/login/', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) return res.status(500).send({ error: error });
+
+        const sqlLoginAvaliador = 'SELECT tblavaliador.idAvaliador, tblusuario.nome FROM tblavaliador INNER JOIN tblusuario ON tblusuario.idUsuario = tblavaliador.idUsuario WHERE tblusuario.email = ? AND tblusuario.senha = ?;'
+        connection.query(sqlLoginAvaliador, [req.body.email, req.body.senha], (error, result) => {
+
+            if (error) return res.status(500).send({ error: error, response: null });
+
+            if(result.lenght == undefined) {
+                return res.status(200).send('Dados Inválidos')
+            } else{
+                return res.status(200).send(result)
+            }
+        })
+    })
+})
+
 // router.post("/cadastrarAluno", (req, res) => {
 // mysql.connect((error, connection) => {
 //     if (error) {

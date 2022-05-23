@@ -622,19 +622,34 @@ router.get("/listarTarefasGerais/:idAluno", (req, res) => {
 
             for (let t = 0; t < topicos.length; t++) {
     
-                let idTopico = topicos[t].idTopicoAluno
-                let nomeTopico = topicos[t].nome
+                let idTopicoGrupo = topicos[t].idTopicoGrupo
+                let nomeTopicoGrupo = topicos[t].nome
     
-                const sqlTarefas = 'SELECT * FROM tbltarefa WHERE idTopicoAluno = ?'
-                connection.query(sqlTarefas, idTopico, (error, result) => {
+                const sqlTarefas = 'SELECT * FROM tbltarefageral WHERE idTopicoGrupo = ?'
+                connection.query(sqlTarefas, idTopicoGrupo, (error, result) => {
 
-                    let tarefasDoTopico = result 
-                        
-                    if((t + 1) == (topicos.length)){
-                        tarefas.push( {'idTopico': idTopico, 'nomeTopico': nomeTopico, tarefasDoTopico} )
-                        res.status(200).send(tarefas)
-                    } else{
-                        tarefas.push( {'idTopico': idTopico, 'nomeTopico': nomeTopico, tarefasDoTopico} )
+                    let tarefasDoTopico = result
+
+                    const sqlAlunosTarefa = 'SELECT tblaluno.idAluno, tblusuario.nome, tblaluno.foto FROM tblaluno INNER JOIN tbltarefaaluno ON tbltarefaaluno.idAluno = tblaluno.idAluno INNER JOIN tblusuario ON tblusuario.idUsuario = tblaluno.idUsuario WHERE tbltarefaaluno.idTarefaGeral = 2;'
+                    for (let t = 0; t < tarefasDoTopico.length; t++) {
+                        connection.query(sqlAlunosTarefa, tarefasDoTopico[t].idTarefaGeral, (error, result) => {
+                            if (error) return res.status(500).send({ error: error, response: null });
+                            
+                            // console.log('ALUNOS DA TAREFA ' + tarefasDoTopico[t].idTarefaGeral + ' : ' + result)
+                            
+                            // console.log(result)
+
+                            // tarefasDoTopico[t].push({ "alunos": result })
+
+                            console.log(tarefasDoTopico)
+
+                            if((t + 1) == (topicos.length)){
+                                tarefas.push( {'idTopico': idTopicoGrupo, 'nomeTopico': nomeTopicoGrupo, tarefasDoTopico} )
+                                res.status(200).send(tarefas)
+                            } else{
+                                tarefas.push( {'idTopico': idTopicoGrupo, 'nomeTopico': nomeTopicoGrupo, tarefasDoTopico} )
+                            }
+                        })
                     }
                 })
             }

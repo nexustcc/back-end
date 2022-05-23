@@ -472,6 +472,7 @@ router.get('/listarAvaliacao/:idAluno', (req, res) => {
                 res.status(200).send({
                     avaliacoes: result.map((avaliacao) => {
                         return {
+                            idAvaliacao: avaliacao.idAvaliacao,
                             objetividade: avaliacao.objetividade,
                             dominioConteudo: avaliacao.dominioConteudo,
                             organizacao: avaliacao.organizacao,

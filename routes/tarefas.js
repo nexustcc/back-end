@@ -454,6 +454,69 @@ router.get('/listarTopicoGrupo/:idAluno', (req, res) => {
     });
 })
 
+router.delete('/deletarTopicoGrupo/:idTopicoGrupo', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let idTarefas = []
+
+        const sqlIdTarefasGrupo = 'SELECT tbltarefageral.idTarefaGeral FROM tbltarefageral WHERE idTopicoGrupo = ?'
+        connection.query(sqlIdTarefasGrupo, req.params.idTopicoGrupo, (error, result) => {
+            if (error) return res.status(500).send({ error: error, response: null });
+
+            for (let i = 0; i < result.length; i++) { idTarefas.push(result[i].idTarefaGeral) }
+            
+            const sqlDeleteAlunosTarefa = "DELETE FROM tbltarefaaluno WHERE idTarefaGeral = ?";
+            for (let a = 0; a < idTarefas.length; a++) {
+                connection.query(sqlDeleteAlunosTarefa, idTarefas[a], (error, result, field) => {
+                    if (error) return res.status(500).send({ error: error, response: null });
+                });
+            }
+
+            const sqlDeleteTarefa = "DELETE FROM tbltarefageral WHERE idTarefaGeral = ?";
+            for (let t = 0; t < idTarefas.length; t++) {
+                connection.query(sqlDeleteTarefa, idTarefas[t], (error, result, field) => {
+                    if (error) return res.status(500).send({ error: error, response: null });
+                });
+            }
+            
+            const sqlDeleteTopico = 'DELETE FROM tbltopicogrupo WHERE idTopicoGrupo = ?'
+            connection.query(sqlDeleteTopico, req.params.idTopicoGrupo, (error, result, field) => {
+                res.status(200).send({ message: "tarefa deletada" });
+            })
+        })
+
+        // const sqlDeleteTarefasTopico = 'DELETE FROM tbltarefa WHERE idTopicoAluno = ?'
+        // connection.query(sqlDeleteTarefasTopico, req.params.idTopicoAluno, (error, result) => {
+        //     if (error) {
+        //         return res.status(500).send({
+        //             error: error,
+        //             response: null,
+        //         });
+        //     }
+
+        //     const sqlDeleteTopicoAluno = 'DELETE FROM tbltopicoaluno WHERE idTopicoAluno = ?'
+        //     connection.query(sqlDeleteTopicoAluno, req.params.idTopicoAluno, (error, result) => {
+        //         if (error) {
+        //             return res.status(500).send({
+        //                 error: error,
+        //                 response: null,
+        //             });
+        //         }
+
+        //         res.status(202).send({
+        //             message: 'Topico do Aluno deletado com sucesso'
+        //         })
+                
+        //     })
+        // })
+    })
+})
+
 
 // TAREFAS ALUNO
 router.post("/cadastrarTarefaGeral/:idAluno", (req, res) => {
@@ -631,23 +694,25 @@ router.get("/listarTarefasGerais/:idAluno", (req, res) => {
                     let tarefasDoTopico = result
 
                     const sqlAlunosTarefa = 'SELECT tblaluno.idAluno, tblusuario.nome, tblaluno.foto FROM tblaluno INNER JOIN tbltarefaaluno ON tbltarefaaluno.idAluno = tblaluno.idAluno INNER JOIN tblusuario ON tblusuario.idUsuario = tblaluno.idUsuario WHERE tbltarefaaluno.idTarefaGeral = 2;'
-                    for (let t = 0; t < tarefasDoTopico.length; t++) {
-                        connection.query(sqlAlunosTarefa, tarefasDoTopico[t].idTarefaGeral, (error, result) => {
+                    for (let a = 0; a < tarefasDoTopico.length; a++) {
+                        connection.query(sqlAlunosTarefa, tarefasDoTopico[a].idTarefaGeral, (error, result) => {
                             if (error) return res.status(500).send({ error: error, response: null });
                             
-                            // console.log('ALUNOS DA TAREFA ' + tarefasDoTopico[t].idTarefaGeral + ' : ' + result)
-                            
-                            // console.log(result)
-
-                            // tarefasDoTopico[t].push({ "alunos": result })
-
-                            console.log(tarefasDoTopico)
-
-                            if((t + 1) == (topicos.length)){
-                                tarefas.push( {'idTopico': idTopicoGrupo, 'nomeTopico': nomeTopicoGrupo, tarefasDoTopico} )
-                                res.status(200).send(tarefas)
+                            tarefasDoTopico[a].alunos = result;
+        
+                            if(t + 1 == topicos.length){
+                                if (a + 1 == tarefasDoTopico.length){
+                                    tarefas.push( {'idTopico': idTopicoGrupo, 'nomeTopico': nomeTopicoGrupo, tarefasDoTopico} )
+                                    res.status(200).send(tarefas)
+                                } 
                             } else{
-                                tarefas.push( {'idTopico': idTopicoGrupo, 'nomeTopico': nomeTopicoGrupo, tarefasDoTopico} )
+                                if (tarefas.length == 0) {
+                                    tarefas.push( {'idTopico': idTopicoGrupo, 'nomeTopico': nomeTopicoGrupo, tarefasDoTopico} )
+                                } else{
+                                    if(idTopicoGrupo =! tarefas[t].idTopico){
+                                        tarefas.push( {'idTopico': idTopicoGrupo, 'nomeTopico': nomeTopicoGrupo, tarefasDoTopico} )
+                                    }
+                                }
                             }
                         })
                     }

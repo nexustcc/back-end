@@ -164,7 +164,7 @@ router.post('/login/', (req, res) => {
             if (error) return res.status(500).send({ error: error, response: null });
 
             if(result.lenght == undefined) {
-                return res.status(200).send('Dados Inválidos')
+                return res.status(200).send('Email ou Senha Inválidos')
             } else{
                 return res.status(200).send(result)
             }

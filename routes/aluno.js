@@ -140,7 +140,7 @@ router.put("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
                             foto = req.file.path;
                         }
 
-                        let fotoFormmat = foto.replace('\\', '/');
+                        let fotoFormmat = foto.replace("\\", "/");
 
                         const sqlEditAluno =
                             "UPDATE tblAluno SET foto = ? WHERE idAluno = ?";
@@ -167,8 +167,6 @@ router.put("/editarAluno/:idAluno", upload.single("foto"), (req, res) => {
         );
     });
 });
-
-// PRECISA DE DOIS GETS, UM DE ALUNO ESPECIFICO E OUTRO DE ALUNOS DE UMA TURMA
 
 router.get("/listarAluno/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {
@@ -252,26 +250,31 @@ router.get("/informacoesGrupo/:idAluno", (req, res) => {
         let professores = [];
         let andamento = [];
 
-        const sqlGrupo = "SELECT tblGrupo.idGrupo, nomeProjeto, temaProjeto, numeracao, nomeGrupo, descricao, dataApresentacao, horaApresentacao, tblGrupo.idTurma FROM tblGrupo INNER JOIN tblAluno ON tblGrupo.idGrupo = tblAluno.idGrupo WHERE idAluno = ?";
+        const sqlGrupo =
+            "SELECT tblGrupo.idGrupo, nomeProjeto, temaProjeto, numeracao, nomeGrupo, descricao, dataApresentacao, horaApresentacao, tblGrupo.idTurma FROM tblGrupo INNER JOIN tblAluno ON tblGrupo.idGrupo = tblAluno.idGrupo WHERE idAluno = ?";
         connection.query(sqlGrupo, req.params.idAluno, (error, result, field) => {
             grupo = result;
 
-            console.log(grupo)
+            console.log(grupo);
 
-            const sqlAlunos = "SELECT tblAluno.idAluno, tblAluno.foto, tblUsuario.nome FROM tblAluno INNER JOIN tblUsuario ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE tblAluno.idGrupo = ?";
-                connection.query(sqlAlunos, grupo.idGrupo, (error, result, field) => {
-                    if (error) {
-                        return res.status(500).send({
-                            error: error,
-                            response: null,
-                        });
-                    }
+            const sqlAlunos =
+                "SELECT tblAluno.idAluno, tblAluno.foto, tblUsuario.nome FROM tblAluno INNER JOIN tblUsuario ON tblAluno.idUsuario = tblUsuario.idUsuario WHERE tblAluno.idGrupo = ?";
+            connection.query(sqlAlunos, grupo.idGrupo, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
 
-                    alunos = result
+                alunos = result;
 
-
-                    const sqlProfessores = "SELECT tblProfessor.idProfessor, tblProfessor.foto, tblUsuario.nome FROM tblProfessor INNER JOIN tblUsuario ON tblProfessor.idUsuario = tblUsuario.idUsuario INNER JOIN tblProfessorGrupo ON tblProfessor.idProfessor = tblProfessorGrupo.idProfessor WHERE tblProfessorGrupo.idGrupo = ?";
-                    connection.query(sqlProfessores, grupo[0].idGrupo, (error, result, field) => {
+                const sqlProfessores =
+                    "SELECT tblProfessor.idProfessor, tblProfessor.foto, tblUsuario.nome FROM tblProfessor INNER JOIN tblUsuario ON tblProfessor.idUsuario = tblUsuario.idUsuario INNER JOIN tblProfessorGrupo ON tblProfessor.idProfessor = tblProfessorGrupo.idProfessor WHERE tblProfessorGrupo.idGrupo = ?";
+                connection.query(
+                    sqlProfessores,
+                    grupo[0].idGrupo,
+                    (error, result, field) => {
                         if (error) {
                             return res.status(500).send({
                                 error: error,
@@ -279,50 +282,60 @@ router.get("/informacoesGrupo/:idAluno", (req, res) => {
                             });
                         }
 
-                        professores = result
-                        
-        
-                        const sqlTarefas = 'SELECT tbltarefa.status FROM tbltarefa INNER JOIN tblaluno ON tblaluno.idAluno = tbltarefa.idAluno INNER JOIN tblgrupo ON tblgrupo.idGrupo = tblaluno.idGrupo WHERE tblaluno.idAluno = ?'
-                            connection.query(sqlTarefas, req.params.idAluno, (error, result, field) => {
-                                        
-                            let tarefasIndividuais = result
-        
-                            const sqlTarefasGerais = 'SELECT DISTINCT tbltarefageral.status FROM tbltarefageral INNER JOIN tbltarefaaluno ON tbltarefaaluno.idTarefaGeral = tbltarefageral.idTarefaGeral INNER JOIN tblaluno ON tblaluno.idAluno = tbltarefaaluno.idAluno INNER JOIN tblgrupo ON tblgrupo.idGrupo = tblaluno.idGrupo WHERE tblaluno.idAluno = ?'
-                            connection.query(sqlTarefasGerais, req.params.idAluno, (error, result, field) => {
-                                            
-                                let tarefasGerais = result
-        
-                                let totalTarefas = []
-        
-                                for (let t = 0; t < tarefasIndividuais.length; t++) {
-                                    totalTarefas.push(tarefasIndividuais[t])
-                                }
-        
-                                for (let t = 0; t < tarefasGerais.length; t++) {
-                                    totalTarefas.push(tarefasGerais[t])
-                                }
-                                            
-                                let tarefasConcluidas = []
-        
-                                for (let t = 0; t < totalTarefas.length; t++) {
-                                    if (totalTarefas[t].status == 'Concluída') tarefasConcluidas.push(totalTarefas[t])
-                                }
-        
-                                if(tarefasConcluidas.length > 0){
-                                    andamento = 100 * tarefasConcluidas.length / totalTarefas.length
-                                } else{
-                                    andamento = 0
-                                }
-        
-                                res.status(202).send({
-                                    grupo: grupo,
-                                    alunos: alunos,
-                                    professores: professores,
-                                    andamento: andamento.toFixed(0)
-                                });
-                            })
-                        })
-                    });
+                        professores = result;
+
+                        const sqlTarefas =
+                            "SELECT tbltarefa.status FROM tbltarefa INNER JOIN tblaluno ON tblaluno.idAluno = tbltarefa.idAluno INNER JOIN tblgrupo ON tblgrupo.idGrupo = tblaluno.idGrupo WHERE tblaluno.idAluno = ?";
+                        connection.query(
+                            sqlTarefas,
+                            req.params.idAluno,
+                            (error, result, field) => {
+                                let tarefasIndividuais = result;
+
+                                const sqlTarefasGerais =
+                                    "SELECT DISTINCT tbltarefageral.status FROM tbltarefageral INNER JOIN tbltarefaaluno ON tbltarefaaluno.idTarefaGeral = tbltarefageral.idTarefaGeral INNER JOIN tblaluno ON tblaluno.idAluno = tbltarefaaluno.idAluno INNER JOIN tblgrupo ON tblgrupo.idGrupo = tblaluno.idGrupo WHERE tblaluno.idAluno = ?";
+                                connection.query(
+                                    sqlTarefasGerais,
+                                    req.params.idAluno,
+                                    (error, result, field) => {
+                                        let tarefasGerais = result;
+
+                                        let totalTarefas = [];
+
+                                        for (let t = 0; t < tarefasIndividuais.length; t++) {
+                                            totalTarefas.push(tarefasIndividuais[t]);
+                                        }
+
+                                        for (let t = 0; t < tarefasGerais.length; t++) {
+                                            totalTarefas.push(tarefasGerais[t]);
+                                        }
+
+                                        let tarefasConcluidas = [];
+
+                                        for (let t = 0; t < totalTarefas.length; t++) {
+                                            if (totalTarefas[t].status == "Concluída")
+                                                tarefasConcluidas.push(totalTarefas[t]);
+                                        }
+
+                                        if (tarefasConcluidas.length > 0) {
+                                            andamento =
+                                                (100 * tarefasConcluidas.length) / totalTarefas.length;
+                                        } else {
+                                            andamento = 0;
+                                        }
+
+                                        res.status(202).send({
+                                            grupo: grupo,
+                                            alunos: alunos,
+                                            professores: professores,
+                                            andamento: andamento.toFixed(0),
+                                        });
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
             });
         });
     });
@@ -344,7 +357,7 @@ router.delete("/deletarAluno/:idAluno", (req, res) => {
             if (error) {
                 return res.status(500).send({
                     error: error,
-                    response: null
+                    response: null,
                 });
             }
 
@@ -353,7 +366,7 @@ router.delete("/deletarAluno/:idAluno", (req, res) => {
                 if (error) {
                     return res.status(500).send({
                         error: error,
-                        response: null
+                        response: null,
                     });
                 }
 
@@ -362,7 +375,7 @@ router.delete("/deletarAluno/:idAluno", (req, res) => {
                     if (error) {
                         return res.status(500).send({
                             error: error,
-                            response: null
+                            response: null,
                         });
                     }
 
@@ -371,7 +384,7 @@ router.delete("/deletarAluno/:idAluno", (req, res) => {
                         if (error) {
                             return res.status(500).send({
                                 error: error,
-                                response: null
+                                response: null,
                             });
                         }
 
@@ -381,7 +394,7 @@ router.delete("/deletarAluno/:idAluno", (req, res) => {
                             if (error) {
                                 return res.status(500).send({
                                     error: error,
-                                    response: null
+                                    response: null,
                                 });
                             }
 
@@ -394,19 +407,17 @@ router.delete("/deletarAluno/:idAluno", (req, res) => {
                                 if (error) {
                                     return res.status(500).send({
                                         error: error,
-                                        response: null
+                                        response: null,
                                     });
                                 }
 
                                 const sqlUsuario = "DELETE FROM tblUsuario WHERE idUsuario = ?";
                                 connection.query(sqlUsuario, idUsuario, (error, result) => {
                                     if (error) {
-                                        return res
-                                            .status(500)
-                                            .send({
-                                                error: error,
-                                                response: null
-                                            });
+                                        return res.status(500).send({
+                                            error: error,
+                                            response: null,
+                                        });
                                     }
 
                                     res.status(202).send("Aluno Deletado");
@@ -420,7 +431,7 @@ router.delete("/deletarAluno/:idAluno", (req, res) => {
     });
 });
 
-router.get('/listarAvaliacao/:idAluno', (req, res) => {
+router.get("/listarAvaliacao/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
             return res.status(500).send({
@@ -444,17 +455,15 @@ router.get('/listarAvaliacao/:idAluno', (req, res) => {
             let result_json = result_obj[Object.keys(result_obj)[0]];
             idGrupo = result_json["idGrupo"];
 
-            const sqlAvaliacao =
-                "SELECT * FROM tblAvaliacao WHERE idGrupo = ?";
+            const sqlAvaliacao = "SELECT * FROM tblAvaliacao WHERE idGrupo = ?";
             connection.query(sqlAvaliacao, idGrupo, (error, result, field) => {
-
                 if (error) {
                     return res.status(500).send({
                         error: error,
                         response: null,
                     });
                 }
-    
+
                 res.status(200).send({
                     avaliacoes: result.map((avaliacao) => {
                         return {
@@ -474,10 +483,31 @@ router.get('/listarAvaliacao/:idAluno', (req, res) => {
                         };
                     }),
                 });
-            })    
-
+            });
         });
-    })
-})
+    });
+});
+
+router.get("/grupoAluno/:idAluno", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        let grupo;
+
+        const sqlGrupo =
+            "SELECT tblGrupo.idGrupo, nomeProjeto, temaProjeto, numeracao, nomeGrupo, descricao, dataApresentacao, horaApresentacao, tblGrupo.idTurma FROM tblGrupo INNER JOIN tblAluno ON tblGrupo.idGrupo = tblAluno.idGrupo WHERE idAluno = ?";
+        connection.query(sqlGrupo, req.params.idAluno, (error, result, field) => {
+            grupo = result;
+
+            res.status(202).send({
+                grupo: grupo
+            });
+        });
+    });
+});
 
 module.exports = router;

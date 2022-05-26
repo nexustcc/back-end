@@ -152,8 +152,6 @@ router.post("/avaliador/avaliarGrupo/:idAvaliador", (req, res) => {
     });
 });
 
-
-
 router.post('/login/', (req, res) => {
     mysql.connect((error, connection) => {
         if (error) return res.status(500).send({ error: error });
@@ -163,7 +161,8 @@ router.post('/login/', (req, res) => {
 
             if (error) return res.status(500).send({ error: error, response: null });
 
-            if(result.lenght == undefined) {
+
+            if(result[0] == undefined) {
                 return res.status(200).send('Email ou Senha Inválidos')
             } else{
                 return res.status(200).send(result)

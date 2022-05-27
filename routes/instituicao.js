@@ -360,4 +360,28 @@ router.delete("/deletarInstituicao/:idInstituicao", (req, res) => {
     });
 });
 
+
+router.get('/listarCursos/:idInstituicao', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql = "SELECT nome, idCurso FROM tblCurso WHERE idInstituicao = ?";
+        const values = req.params.idInstituicao;
+        connection.query(sql, values, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(200).send(result);
+        });
+    });
+})
+
 module.exports = router;

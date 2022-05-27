@@ -174,6 +174,38 @@ router.put("/editarGrupoAluno/:idAluno", (req, res) => {
     });
 });
 
+router.put("/editarGrupoProfessor/:idGrupo", (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sqlEditGrupo = "UPDATE tblGrupo SET temaProjeto = ?, descricao = ?, dataApresentacao = ?, horaApresentacao = ? WHERE idGrupo = ?";
+        const valuesGrupo = [
+            req.body.temaProjeto,
+            req.body.descricao,
+            req.body.dataApresentacao,
+            req.body.horaApresentacao,
+            req.params.idGrupo
+        ];
+
+        connection.query(sqlEditGrupo, valuesGrupo, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                message: "Grupo Editado com Sucesso",
+            });
+        });
+    });
+});
+
 router.get("/listarGrupo/:idGrupo", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -566,29 +598,5 @@ router.delete("/deletarGrupo/:idGrupo", (req, res) => {
         );
     });
 });
-
-// router.delete("/deletarGrupo/:idGrupo", (req, res) => {
-//     mysql.connect((error, connection) => {
-//         if (error) {
-//             return res.status(500).send({
-//                 error: error,
-//             });
-//         }
-
-//         const sql = "DELETE FROM tblGrupo WHERE idGrupo = ?";
-//         connection.query(sql, req.params.idGrupo, (error, result, field) => {
-//             if (error) {
-//                 return res.status(500).send({
-//                     error: error,
-//                     response: null,
-//                 });
-//             }
-
-//             res.status(200).send({
-//                 message: "grupo deletado",
-//             });
-//         });
-//     });
-// });
 
 module.exports = router;

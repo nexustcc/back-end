@@ -1,16 +1,3 @@
-/**
- * TODO: Preciso fazer as rotas de DELETE Tópico (Aluno) e DELETE Tópico (Grupo), ao deletar um tópico, deverá deletar as tarefas existentes nele e qualquer relação que contenha o id a ser deletado
- * TODO: Coloque essas duas rotas depois de router.put("/editarTopicoGrupo/:idTopicoGrupo"), para ficar mais organizado
- * TODO: Também preciso fazer: GET Tópico (Aluno), GET Tópico (Grupo), GET Tarefa (Aluno), GET Tarefa (Grupo), utilizando o converterData do date.js para converter e formatar as datas
- * TODO: Farei primeiro os GETS que faltam e depois os DELETES que faltam
- * TODO: Fazer também GET de Tarefa Específica
- *
- * TODO: GET Topico (Aluno) e GET Topico(Grupo)
- * TODO: DELETE Topico (Aluno) e DELETE Topico(Grupo)
- * TODO: PUT idCor em Topico(Aluno) e PUT idCor em Topico(Grupo)
- * TODO: GET Tarefas de um Tópico Específico (Aluno) passando idAluno, assim vai retornar tudo de uma vez e nao será necessário fazer vários fetchs
- * **/
-
 const express = require("express");
 const router = express.Router();
 const mysql = require("../mysql");
@@ -693,7 +680,7 @@ router.get("/listarTarefasGerais/:idAluno", (req, res) => {
 
                     let tarefasDoTopico = result
 
-                    const sqlAlunosTarefa = 'SELECT tblaluno.idAluno, tblusuario.nome, tblaluno.foto FROM tblaluno INNER JOIN tbltarefaaluno ON tbltarefaaluno.idAluno = tblaluno.idAluno INNER JOIN tblusuario ON tblusuario.idUsuario = tblaluno.idUsuario WHERE tbltarefaaluno.idTarefaGeral = 2;'
+                    const sqlAlunosTarefa = 'SELECT tblaluno.idAluno, tblusuario.nome, tblaluno.foto FROM tblaluno INNER JOIN tbltarefaaluno ON tbltarefaaluno.idAluno = tblaluno.idAluno INNER JOIN tblusuario ON tblusuario.idUsuario = tblaluno.idUsuario WHERE tbltarefaaluno.idTarefaGeral = ?'
                     for (let a = 0; a < tarefasDoTopico.length; a++) {
                         connection.query(sqlAlunosTarefa, tarefasDoTopico[a].idTarefaGeral, (error, result) => {
                             if (error) return res.status(500).send({ error: error, response: null });
@@ -703,6 +690,7 @@ router.get("/listarTarefasGerais/:idAluno", (req, res) => {
                             if(t + 1 == topicos.length){
                                 if (a + 1 == tarefasDoTopico.length){
                                     tarefas.push( {'idTopico': idTopicoGrupo, 'nomeTopico': nomeTopicoGrupo, tarefasDoTopico} )
+                                    console.log(result)
                                     res.status(200).send(tarefas)
                                 } 
                             } else{

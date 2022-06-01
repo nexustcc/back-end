@@ -114,20 +114,31 @@ router.put("/editarTopicoAluno/:idTopicoAluno", (req, res) => {
             });
         }
 
-        const sql = "UPDATE tblTopicoAluno SET nome = ? WHERE idTopicoAluno = ?;";
-        const values = [req.body.nome, req.params.idTopicoAluno];
-        connection.query(sql, values, (error, result, field) => {
-            if (error) {
-                return res.status(500).send({
-                    error: error,
-                    response: null,
-                });
-            }
+        if(req.body.nome == '' || req.body.nome == undefined){
+            const sql = "UPDATE tblTopicoAluno SET idCor = ? WHERE idTopicoAluno = ?;";
+            const values = [req.body.idCor, req.params.idTopicoAluno];
+            connection.query(sql, values, (error, result, field) => {
+                if (error) return res.status(500).send({ error: error, response: null });
 
-            res.status(202).send({
-                message: "Topico de Aluno editado com sucesso",
+                res.status(202).send({ message: "Topico de Aluno editado com sucesso" });
             });
-        });
+        } else {
+            const sql = "UPDATE tblTopicoAluno SET nome = ?, idCor = ? WHERE idTopicoAluno = ?;";
+            const values = [req.body.nome, req.body.idCor, req.params.idTopicoAluno];
+            connection.query(sql, values, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+    
+                res.status(202).send({
+                    message: "Topico de Aluno editado com sucesso",
+                });
+            });
+        }
+
     });
 });
 
@@ -270,7 +281,7 @@ router.get("/listarTarefas/:idAluno", (req, res) => {
         }
         
         
-        const sqlTopicosAluno = 'SELECT tbltopicoaluno.idTopicoAluno, tbltopicoaluno.nome FROM tbltopicoaluno WHERE tbltopicoaluno.idAluno = ?'
+        const sqlTopicosAluno = 'SELECT tbltopicoaluno.idTopicoAluno, tbltopicoaluno.nome, tbltopicoaluno.idCor FROM tbltopicoaluno WHERE tbltopicoaluno.idAluno = ?'
         connection.query(sqlTopicosAluno, req.params.idAluno, (error, result, field) =>  {
             if (error) {
                 return res.status(500).send({
@@ -289,6 +300,7 @@ router.get("/listarTarefas/:idAluno", (req, res) => {
     
                 let idTopico = topicos[t].idTopicoAluno
                 let nomeTopico = topicos[t].nome
+                let idCor = topicos[t].idCor
     
                 const sqlTarefas = 'SELECT * FROM tbltarefa WHERE idTopicoAluno = ?'
                 connection.query(sqlTarefas, idTopico, (error, result) => {
@@ -296,10 +308,10 @@ router.get("/listarTarefas/:idAluno", (req, res) => {
                     let tarefasDoTopico = result 
                         
                     if((t + 1) == (topicos.length)){
-                        tarefas.push({'idTopico': idTopico, 'nomeTopico': nomeTopico, tarefasDoTopico})
+                        tarefas.push({'idTopico': idTopico, 'nomeTopico': nomeTopico, 'idCor': idCor, tarefasDoTopico})
                         res.status(200).send(tarefas)
                     } else{
-                        tarefas.push({'idTopico': idTopico, 'nomeTopico': nomeTopico, tarefasDoTopico})
+                        tarefas.push({'idTopico': idTopico, 'nomeTopico': nomeTopico, 'idCor': idCor, tarefasDoTopico})
                     }
                 })
             }

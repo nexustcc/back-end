@@ -4,6 +4,7 @@ const mysql = require("../mysql");
 const converterData = require("./utils/date");
 
 
+
 // CORES - TAREFA e TÓPICO
 router.get("/listarCores", (req, res) => {
     mysql.connect((error, connection) => {
@@ -237,6 +238,42 @@ router.post("/cadastrarTarefa/:idAluno", (req, res) => {
     });
 });
 
+router.post('/duplicarTarefa', (req, res) => {
+    mysql.connect((error, connection) => {
+
+        const sqlIdTopico = 'SELECT * FROM tblTarefa WHERE idTarefa = ?'
+        connection.query(sqlIdTopico, req.body.idTarefa, (error, result, field) => {
+            if (error) return res.status(500).send({ error: error, response: null });
+    
+            const sqlTarefa = "INSERT INTO tblTarefa (status, prioridade, nome, dataInicio, dataConclusao, idTopicoAluno, idCor, idAluno) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            const valuesTarefa = [
+                result[0].status,
+                result[0].prioridade,
+                result[0].nome,
+                result[0].dataInicio,
+                result[0].dataConclusao,
+                result[0].idTopicoAluno,
+                result[0].idCor,
+                result[0].idAluno,
+            ];
+    
+            connection.query(sqlTarefa, valuesTarefa, (error, result, field) => {
+                if (error) {
+                    return res.status(500).send({
+                        error: error,
+                        response: null,
+                    });
+                }
+    
+                res.status(202).send({
+                    message: "Tarefa de Aluno DUPLICADA com sucesso",
+                });
+            });
+        })
+
+    });
+})
+
 router.put("/editarTarefa/:idTarefa", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {
@@ -302,7 +339,7 @@ router.get("/listarTarefas/:idAluno", (req, res) => {
                 let nomeTopico = topicos[t].nome
                 let idCor = topicos[t].idCor
     
-                const sqlTarefas = 'SELECT * FROM tbltarefa WHERE idTopicoAluno = ?'
+                const sqlTarefas = 'SELECT * FROM tbltarefa WHERE idTopicoAluno = ? ORDER BY status desc'
                 connection.query(sqlTarefas, idTopico, (error, result) => {
 
                     let tarefasDoTopico = result 

@@ -309,6 +309,36 @@ router.put("/editarTarefa/:idTarefa", (req, res) => {
     });
 });
 
+router.put('/editarStatusTarefaIndividual/:idTarefa', (req, res) => {
+    mysql.connect((error, connection) => {
+        if (error) {
+            return res.status(500).send({
+                error: error,
+            });
+        }
+
+        const sql =
+            "UPDATE tblTarefa SET status = ? WHERE idTarefa = ?;";
+        const values = [
+            req.body.status,
+            req.params.idTarefa,
+        ];
+
+        connection.query(sql, values, (error, result, field) => {
+            if (error) {
+                return res.status(500).send({
+                    error: error,
+                    response: null,
+                });
+            }
+
+            res.status(202).send({
+                message: "Tarefa de Aluno editada com sucesso",
+            });
+        });
+    });
+})
+
 router.get("/listarTarefas/:idAluno", (req, res) => {
     mysql.connect((error, connection) => {
         if (error) {

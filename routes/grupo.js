@@ -335,48 +335,6 @@ router.get("/informacoesGrupo/:idGrupo", (req, res) => {
                                     }
                                 })
                             }
-                            
-
-                            // const sqlTarefas = 'SELECT tbltarefa.status FROM tbltarefa INNER JOIN tblaluno ON tblaluno.idAluno = tbltarefa.idAluno INNER JOIN tblgrupo ON tblgrupo.idGrupo = tblaluno.idGrupo WHERE tblgrupo.idGrupo = ?'
-                            // connection.query(sqlTarefas, req.params.idGrupo, (error, result, field) => {
-                                
-                            //     let tarefasIndividuais = result
-
-                            //     const sqlTarefasGerais = 'SELECT DISTINCT tbltarefageral.status FROM tbltarefageral INNER JOIN tbltarefaaluno ON tbltarefaaluno.idTarefaGeral = tbltarefageral.idTarefaGeral INNER JOIN tblaluno ON tblaluno.idAluno = tbltarefaaluno.idAluno INNER JOIN tblgrupo ON tblgrupo.idGrupo = tblaluno.idGrupo WHERE tblgrupo.idGrupo = ?'
-                            //     connection.query(sqlTarefasGerais, req.params.idGrupo, (error, result, field) => {
-                                    
-                            //         let tarefasGerais = result
-
-                            //         let totalTarefas = []
-
-                            //         for (let t = 0; t < tarefasIndividuais.length; t++) {
-                            //             totalTarefas.push(tarefasIndividuais[t])
-                            //         }
-
-                            //         for (let t = 0; t < tarefasGerais.length; t++) {
-                            //             totalTarefas.push(tarefasGerais[t])
-                            //         }
-                                    
-                            //         let tarefasConcluidas = []
-
-                            //         for (let t = 0; t < totalTarefas.length; t++) {
-                            //             if (totalTarefas[t].status == 'Concluída') tarefasConcluidas.push(totalTarefas[t])
-                            //         }
-
-                            //         if(tarefasConcluidas.length > 0){
-                            //             andamento = 100 * tarefasConcluidas.length / totalTarefas.length
-                            //         } else{
-                            //             andamento = 0
-                            //         }
-
-                            //         res.status(202).send({
-                            //             grupo: grupo,
-                            //             alunos: alunos,
-                            //             professores: professores,
-                            //             andamento: andamento.toFixed(0)
-                            //         });
-                            //     })
-                            // })
                         }
                     );
                 }
@@ -407,7 +365,7 @@ router.get("/pegarInstituicao/:idAvaliador", (req, res) => {
             });
         });
     });
-});
+}); 
 
 router.delete("/deletarGrupo/:idGrupo", (req, res) => {
     mysql.connect((error, connection) => {

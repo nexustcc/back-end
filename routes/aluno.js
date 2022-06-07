@@ -287,46 +287,68 @@ router.get("/informacoesGrupo/:idAluno", (req, res) => {
     
                         professores = result;
 
-                        let tarefasConcluidas = []
-                        let totalTarefas = []
+                        if(result.length == 0  || alunos.length == 0){
+                            res.status(202).send({
+                                grupo: grupo,
+                                alunos: alunos,
+                                professores: professores,
+                                andamento: 0
+                            });
 
-                        const sqlTarefasIndividuais = 'SELECT status FROM tbltarefa WHERE idAluno = ?'
-                        for (let t = 0; t < alunos.length; t++) {
-                            connection.query(sqlTarefasIndividuais, alunos[t].idAluno, (error, result, field) => {
+                        } else{
+                            let tarefasConcluidas = []
+                            let totalTarefas = []
 
-                                for (let r = 0; r < result.length; r++) {
-                                    totalTarefas.push(result[r])
-                                    if(result[r].status == 'Concluída') tarefasConcluidas.push(result[r])
-                                }
+                            const sqlTarefasIndividuais = 'SELECT status FROM tbltarefa WHERE idAluno = ?'
 
-                                if(t + 1 == alunos.length){
 
-                                    const sqlTarefasGerais = 'SELECT status FROM tbltarefageral INNER JOIN tbltopicogrupo ON tbltarefageral.idTopicoGrupo = tbltopicogrupo.idTopicoGrupo WHERE idGrupo = ?'
-                                    connection.query(sqlTarefasGerais, grupo[0].idGrupo, (error, result, field) => {
+                            for (let t = 0; t < alunos.length; t++) {
+                                connection.query(sqlTarefasIndividuais, alunos[t].idAluno, (error, result, field) => {
+
+                                    for (let r = 0; r < result.length; r++) {
+                                        totalTarefas.push(result[r])
+                                        if(result[r].status == 'Concluída') tarefasConcluidas.push(result[r])
+                                    }
     
-                                        for (let r = 0; r < result.length; r++) {
-                                            totalTarefas.push(result[r])
-                                            if(result[r].status == 'Concluída') tarefasConcluidas.push(result[r])
-                
-                                            if(r + 1 == result.length){
+                                    if(t + 1 == alunos.length){
+    
+                                        const sqlTarefasGerais = 'SELECT status FROM tbltarefageral INNER JOIN tbltopicogrupo ON tbltarefageral.idTopicoGrupo = tbltopicogrupo.idTopicoGrupo WHERE idGrupo = ?'
+                                        connection.query(sqlTarefasGerais, grupo[0].idGrupo, (error, result, field) => {
 
-                                                if(tarefasConcluidas.length > 0){
-                                                    andamento = 100 * tarefasConcluidas.length / totalTarefas.length
-                                                } else{
-                                                    andamento = 0
-                                                }
-                                                
+                                            if(result.length == 0){
                                                 res.status(202).send({
                                                     grupo: grupo,
                                                     alunos: alunos,
                                                     professores: professores,
-                                                    andamento: andamento.toFixed(0)
+                                                    andamento: 0
                                                 });
+
+                                            } else{
+                                                for (let r = 0; r < result.length; r++) {
+                                                    totalTarefas.push(result[r])
+                                                    if(result[r].status == 'Concluída') tarefasConcluidas.push(result[r])
+                        
+                                                    if(r + 1 == result.length){
+        
+                                                        if(tarefasConcluidas.length > 0){
+                                                            andamento = 100 * tarefasConcluidas.length / totalTarefas.length
+                                                        } else{
+                                                            andamento = 0
+                                                        }
+                                                        res.status(202).send({
+                                                            grupo: grupo,
+                                                            alunos: alunos,
+                                                            professores: professores,
+                                                            andamento: andamento.toFixed(0)
+                                                        });
+                                                    }
+                                                }
                                             }
-                                        }
-                                    })
-                                }
-                            })
+        
+                                        })
+                                    }
+                                })
+                            }
                         }
                     });
                 });

@@ -288,6 +288,7 @@ router.get("/informacoesGrupo/:idAluno", (req, res) => {
                         professores = result;
 
                         if(result.length == 0  || alunos.length == 0){
+                            console.log()
                             res.status(202).send({
                                 grupo: grupo,
                                 alunos: alunos,
@@ -316,11 +317,16 @@ router.get("/informacoesGrupo/:idAluno", (req, res) => {
                                         connection.query(sqlTarefasGerais, grupo[0].idGrupo, (error, result, field) => {
 
                                             if(result.length == 0){
+                                                if(tarefasConcluidas.length > 0){
+                                                    andamento = 100 * tarefasConcluidas.length / totalTarefas.length
+                                                } else{
+                                                    andamento = 0
+                                                }
                                                 res.status(202).send({
                                                     grupo: grupo,
                                                     alunos: alunos,
                                                     professores: professores,
-                                                    andamento: 0
+                                                    andamento: andamento.toFixed(0)
                                                 });
 
                                             } else{
